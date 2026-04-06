@@ -2,16 +2,12 @@ import { motion } from "motion/react";
 import { Linkedin, ArrowRight, Instagram, Facebook } from "lucide-react";
 import profileImg from "../../Image/Rhenmart_Profile.jpeg";
 
+const easeOut = [0, 0, 0.2, 1] as const;
+
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, delay, ease: "easeOut" },
-});
-
-const fadeLeft = (delay = 0) => ({
-  initial: { opacity: 0, x: -40 },
-  animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.7, delay, ease: "easeOut" },
+  transition: { duration: 0.6, delay, ease: easeOut },
 });
 
 export function Hero() {
@@ -88,7 +84,7 @@ export function Hero() {
                     key={i}
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.05, ease: "easeOut" }}
+                    transition={{ delay: 0.3 + i * 0.05, ease: easeOut }}
                     className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/40"
                   >
                     {char}
@@ -100,7 +96,7 @@ export function Hero() {
                     key={i}
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 + i * 0.04, ease: "easeOut" }}
+                    transition={{ delay: 0.7 + i * 0.04, ease: easeOut }}
                     className="inline-block text-white/30"
                   >
                     {char === " " ? "\u00A0" : char}
@@ -181,7 +177,7 @@ export function Hero() {
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{ delay: 1.6, duration: 0.8, ease: "easeOut" }}
+              transition={{ delay: 1.6, duration: 0.8, ease: easeOut }}
               style={{ originX: 0 }}
               className="w-full h-px bg-white/10"
             />
@@ -210,7 +206,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8, x: 60 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.9, delay: 0.4, ease: easeOut }}
             className="order-1 md:order-2 flex justify-center md:justify-end relative group"
           >
             {/* Rotating border ring */}

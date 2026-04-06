@@ -1,105 +1,271 @@
-import { motion } from "motion/react";
-import { Send } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Send, Mail, Phone, MapPin, CheckCircle } from "lucide-react";
+import { useState } from "react";
+
+const contactInfo = [
+  { icon: Mail, label: "Email", value: "Rhenmart@gmail.com", href: "mailto:Rhenmart@gmail.com" },
+  { icon: Phone, label: "Phone", value: "0967 221 2791", href: "tel:+639672212791" },
+  { icon: MapPin, label: "Location", value: "Philippines", href: "#" },
+];
 
 export function Contact() {
-  return (
-    <section id="contact" className="py-20 bg-[#050505] relative overflow-hidden">
-      {/* Background Effect */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#FF0000]/5 rounded-full blur-[100px] pointer-events-none" />
+  const [focused, setFocused] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+    }, 1500);
+  };
+
+  return (
+    <section id="contact" className="py-24 bg-[#050505] relative overflow-hidden">
+      {/* Animated bg */}
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.05, 0.1, 0.05] }}
+        transition={{ duration: 8, repeat: Infinity }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FF0000] rounded-full blur-[120px] pointer-events-none"
+      />
+
+      {/* Floating dots */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ y: [0, -20, 0], opacity: [0, 0.4, 0] }}
+          transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
+          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
+          style={{ left: `${15 + i * 18}%`, top: `${20 + (i % 3) * 25}%` }}
+        />
+      ))}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        {/* Header */}
         <div className="text-center mb-16 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF0000]/10 border border-[#FF0000]/20 rounded-full mb-2"
+          >
+            <motion.span
+              animate={{ scale: [1, 1.4, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-1.5 h-1.5 bg-[#FF0000] rounded-full"
+            />
+            <span className="text-[#FF0000] text-xs font-semibold uppercase tracking-widest">Get In Touch</span>
+          </motion.div>
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-4xl md:text-5xl font-bold text-white tracking-tight"
           >
-            Contact me
+            Contact Me
           </motion.h2>
+
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-white/50 max-w-xl mx-auto"
+            className="text-white/50 max-w-xl mx-auto text-sm sm:text-base"
           >
-            Have a project in mind or just want to say hi? Feel free to reach out to me!
+            Have a project in mind or just want to say hi? Feel free to reach out!
           </motion.p>
+
           <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            style={{ originX: 0.5 }}
             className="w-16 h-1 bg-[#FF0000] mx-auto rounded-full"
           />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-3xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-sm shadow-2xl"
-        >
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-2 col-span-1">
-              <label htmlFor="name" className="text-sm font-medium text-white/70">
-                Your Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] transition-all"
-                placeholder="John Doe"
-              />
-            </div>
-            
-            <div className="space-y-2 col-span-1">
-              <label htmlFor="email" className="text-sm font-medium text-white/70">
-                Your Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] transition-all"
-                placeholder="john@example.com"
-              />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
 
-            <div className="space-y-2 col-span-1 md:col-span-2">
-              <label htmlFor="subject" className="text-sm font-medium text-white/70">
-                Subject
-              </label>
-              <input
-                type="text"
-                id="subject"
-                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] transition-all"
-                placeholder="Project Inquiry"
-              />
-            </div>
-
-            <div className="space-y-2 col-span-1 md:col-span-2">
-              <label htmlFor="message" className="text-sm font-medium text-white/70">
-                Your Message
-              </label>
-              <textarea
-                id="message"
-                rows={5}
-                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000] transition-all resize-none"
-                placeholder="Tell me about your project..."
-              ></textarea>
-            </div>
-
-            <div className="col-span-1 md:col-span-2 flex justify-end mt-4">
-              <button
-                type="submit"
-                className="group px-8 py-4 bg-[#FF0000] text-white font-semibold rounded-full hover:bg-red-700 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all duration-300 flex items-center gap-3 w-full md:w-auto justify-center"
+          {/* Contact Info Cards */}
+          <div className="flex flex-col gap-4">
+            {contactInfo.map(({ icon: Icon, label, value, href }, i) => (
+              <motion.a
+                key={label}
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                whileHover={{ x: 6, scale: 1.02 }}
+                className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-[#FF0000]/40 hover:bg-white/8 transition-all duration-300 group"
               >
-                Send Message
-                <Send size={18} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </form>
-        </motion.div>
+                <motion.div
+                  whileHover={{ rotate: 10, scale: 1.1 }}
+                  className="p-3 bg-[#FF0000]/10 rounded-xl group-hover:bg-[#FF0000]/20 transition-colors"
+                >
+                  <Icon size={18} className="text-[#FF0000]" />
+                </motion.div>
+                <div>
+                  <p className="text-white/40 text-xs uppercase tracking-wider">{label}</p>
+                  <p className="text-white text-sm font-medium">{value}</p>
+                </div>
+              </motion.a>
+            ))}
+
+            {/* Availability badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+              className="p-4 bg-green-500/5 border border-green-500/20 rounded-2xl mt-2"
+            >
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ scale: [1, 1.4, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-2.5 h-2.5 bg-green-400 rounded-full"
+                />
+                <div>
+                  <p className="text-green-400 text-sm font-semibold">Available for work</p>
+                  <p className="text-white/40 text-xs">Open to freelance & full-time</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Form */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden"
+          >
+            {/* Shimmer on load */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              whileInView={{ x: "200%" }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none"
+            />
+
+            <AnimatePresence mode="wait">
+              {sent ? (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex flex-col items-center justify-center h-full py-16 gap-4"
+                >
+                  <motion.div
+                    animate={{ scale: [0, 1.2, 1] }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <CheckCircle size={56} className="text-green-400" />
+                  </motion.div>
+                  <p className="text-white text-xl font-bold">Message Sent!</p>
+                  <p className="text-white/50 text-sm">I'll get back to you soon.</p>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="form"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+                  onSubmit={handleSubmit}
+                >
+                  {[
+                    { id: "name", label: "Your Name", type: "text", placeholder: "John Doe", col: 1 },
+                    { id: "email", label: "Your Email", type: "email", placeholder: "john@example.com", col: 1 },
+                    { id: "subject", label: "Subject", type: "text", placeholder: "Project Inquiry", col: 2 },
+                  ].map(({ id, label, type, placeholder, col }) => (
+                    <motion.div
+                      key={id}
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className={`space-y-2 ${col === 2 ? "sm:col-span-2" : ""}`}
+                    >
+                      <label htmlFor={id} className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                        {label}
+                      </label>
+                      <motion.input
+                        type={type}
+                        id={id}
+                        onFocus={() => setFocused(id)}
+                        onBlur={() => setFocused(null)}
+                        animate={{ borderColor: focused === id ? "#FF0000" : "rgba(255,255,255,0.1)" }}
+                        className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF0000] transition-all"
+                        placeholder={placeholder}
+                      />
+                    </motion.div>
+                  ))}
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="space-y-2 sm:col-span-2"
+                  >
+                    <label htmlFor="message" className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                      Your Message
+                    </label>
+                    <motion.textarea
+                      id="message"
+                      rows={4}
+                      onFocus={() => setFocused("message")}
+                      onBlur={() => setFocused(null)}
+                      animate={{ borderColor: focused === "message" ? "#FF0000" : "rgba(255,255,255,0.1)" }}
+                      className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF0000] transition-all resize-none"
+                      placeholder="Tell me about your project..."
+                    />
+                  </motion.div>
+
+                  <div className="sm:col-span-2 flex justify-end">
+                    <motion.button
+                      type="submit"
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.97 }}
+                      disabled={sending}
+                      className="group flex items-center gap-3 px-8 py-3.5 bg-[#FF0000] text-white font-semibold rounded-full hover:bg-red-700 hover:shadow-[0_0_25px_rgba(255,0,0,0.5)] transition-all duration-300 disabled:opacity-70 w-full sm:w-auto justify-center"
+                    >
+                      {sending ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                          />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          Send Message
+                          <motion.span
+                            animate={{ x: [0, 4, 0] }}
+                            transition={{ duration: 1.2, repeat: Infinity }}
+                          >
+                            <Send size={16} />
+                          </motion.span>
+                        </>
+                      )}
+                    </motion.button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
