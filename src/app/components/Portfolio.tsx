@@ -1,27 +1,28 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { X, ExternalLink, Code, Layout, Trophy } from "lucide-react";
+import champImg from "../../Image/umak champ.jpg";
 
 const portfolioItems = [
   {
     id: 1,
     title: "Web Design Champion",
-    role: "Lead UI/UX",
+    role: "Design Strategies / UI/UX",
     category: "Competition",
-    image: "https://images.unsplash.com/photo-1623652653308-d49d335c92eb?q=80&w=1080&auto=format&fit=crop",
-    challenge: "Design an entire e-commerce platform in 48 hours under strict competition rules, focusing on accessibility and conversion rates.",
-    solution: "Leveraged Figma Auto-Layout and Component Properties for rapid prototyping. Created a comprehensive design system for seamless dev handoff.",
-    impact: "1st Place / Champion result. Commended for intuitive user flows and detailed wireframes.",
+    image: champImg,
+    challenge: "Design and develop a one-page website within 2 hours during the UMAK IT Skills Olympics, requiring fast decision-making, strong UX thinking, and efficient execution under pressure.",
+    solution: "I created a design plan and strategy using the available components, aligning closely with development to reduce pressure during the development phase. I structured the design to ensure clear objectives were met efficiently, enabling a smooth workflow and effective delivery within the tight timeframe.",
+    impact: "We championed a user-centered design approach, aligned closely with development, and delivered a functional, intuitive one-page website under tight deadlines, showcasing efficient problem-solving and quick decision-making.",
   },
   {
     id: 2,
-    title: "FinTech Dashboard Redesign",
-    role: "UI/UX Designer",
-    category: "Dashboard",
+    title: "NDC's Breaking Enigma 2025 National Hackathon",
+    role: "Product Designer",
+    category: "Competition",
     image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1080&auto=format&fit=crop",
-    challenge: "Modernize a legacy financial dashboard that was cluttered and difficult for users to extract meaningful insights.",
-    solution: "Conducted user research to identify key metrics. Implemented a modular widget system using a strict 12-column grid and high-contrast typography.",
-    impact: "Increased user engagement by 45% and reduced support tickets related to navigation by 30%.",
+    challenge: "Collaborate in a team of four to develop a concept-to-prototype solution, within 4 days, addressing a real community problem under Technology Track and tight deadlines.",
+    solution: "During the hackathon, we focused on real-world calamities such as earthquakes and floods, where internet or mobile signals may be unavailable. We conceptualized SafePath, an offline GPS-based SOS mobile application, allowing users to instantly ping their location to nearby authorities police, hospitals, or barangay by pressing the volume buttons, with or without internet. By dividing tasks strategically and leveraging available technology, we rapidly developed a functional prototype that addressed urgent safety needs.",
+    impact: "Even though we didn't win a placement, we gained invaluable experience and built strong connections with fellow competitors. Collaborating with other participants and receiving guidance from professionals throughout the 4-day event gave us new ideas, insights, and practical knowledge, strengthening both our skills and teamwork.",
   },
   {
     id: 3,

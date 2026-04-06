@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, Mail, Phone } from "lucide-react";
+import { Linkedin, Mail, Phone, Instagram, Facebook } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -26,14 +26,14 @@ export function Footer() {
         {/* Social & Contact info */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 mt-4">
           <div className="flex gap-4">
-            <a href="#" className="p-3 bg-white/5 rounded-full hover:bg-[#FF0000] text-white/70 hover:text-white transition-all hover:scale-110">
-              <Github size={20} />
-            </a>
-            <a href="#" className="p-3 bg-white/5 rounded-full hover:bg-[#FF0000] text-white/70 hover:text-white transition-all hover:scale-110">
+            <a href="https://www.linkedin.com/in/rhenmart-delacruz-117858312/" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 rounded-full hover:bg-[#0077B5] text-white/70 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(0,119,181,0.5)]">
               <Linkedin size={20} />
             </a>
-            <a href="#" className="p-3 bg-white/5 rounded-full hover:bg-[#FF0000] text-white/70 hover:text-white transition-all hover:scale-110">
-              <Twitter size={20} />
+            <a href="https://www.instagram.com/_rhenmart_/" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 rounded-full hover:bg-[#E1306C] text-white/70 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(225,48,108,0.5)]">
+              <Instagram size={20} />
+            </a>
+            <a href="https://www.facebook.com/rhenmart1234" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 rounded-full hover:bg-[#1877F2] text-white/70 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(24,119,242,0.5)]">
+              <Facebook size={20} />
             </a>
           </div>
 
