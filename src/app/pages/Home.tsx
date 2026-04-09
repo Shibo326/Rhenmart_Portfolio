@@ -185,10 +185,19 @@ const CursorGlow = memo(function CursorGlow() {
   );
 });
 
-// ── Simple divider ──────────────────────────────────────────────────────────
+// ── Animated section divider ───────────────────────────────────────────────
 function Divider() {
   return (
-    <div className="h-px bg-gradient-to-r from-transparent via-[#FF0000]/20 to-transparent" />
+    <div className="h-px relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FF0000]/25 to-transparent" />
+      {!isMobile && (
+        <motion.div
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+          className="absolute inset-0 w-1/4 bg-gradient-to-r from-transparent via-[#FF0000]/50 to-transparent"
+        />
+      )}
+    </div>
   );
 }
 
@@ -258,13 +267,30 @@ export function Home() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.15, rotate: isMobile ? 0 : 360, boxShadow: "0 0 28px rgba(255,0,0,0.6)" }}
             whileTap={{ scale: 0.9 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 right-6 z-50 p-3.5 bg-[#FF0000]/15 border border-[#FF0000]/40 text-white rounded-full hover:bg-[#FF0000] transition-colors duration-300"
+            className="fixed bottom-6 right-6 z-50 p-3.5 bg-[#FF0000]/15 border border-[#FF0000]/40 text-white rounded-full hover:bg-[#FF0000] transition-colors duration-300 group overflow-hidden"
             aria-label="Scroll to top"
           >
-            <ChevronUp size={22} />
+            <ChevronUp size={22} className="group-hover:animate-bounce" />
+            {/* Animated gradient border — desktop only */}
+            {!reduceEffects && (
+              <div className="absolute inset-0 rounded-full pointer-events-none">
+                <motion.div
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 rounded-full p-[1.5px]"
+                  style={{
+                    background: "linear-gradient(90deg, #FF0000, #FF4444, #FF8888, #FF4444, #FF0000)",
+                    backgroundSize: "200% 100%",
+                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude"
+                  }}
+                />
+              </div>
+            )}
           </motion.button>
         )}
       </AnimatePresence>

@@ -41,9 +41,19 @@ export function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="relative group">
-          <span className="text-xl sm:text-2xl font-black tracking-tighter text-[#FF0000]">
+          <motion.span
+            animate={isMobile ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 12px #FF0000", "0 0 0px #FF0000"] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="text-xl sm:text-2xl font-black tracking-tighter text-[#FF0000]"
+          >
             RHEN.
-          </span>
+          </motion.span>
+          <motion.span
+            initial={{ scaleX: 0 }}
+            whileHover={{ scaleX: 1 }}
+            style={{ originX: 0 }}
+            className="absolute -bottom-0.5 left-0 right-0 h-px bg-[#FF0000] rounded-full"
+          />
         </Link>
 
         {/* Desktop Nav */}

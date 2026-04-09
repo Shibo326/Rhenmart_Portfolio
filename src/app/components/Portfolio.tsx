@@ -66,6 +66,13 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
           style={{ boxShadow: `inset 0 0 0 1.5px ${cfg.dot}, 0 0 25px ${cfg.glow}` }} />
       )}
 
+      {/* Shimmer sweep on hover — desktop only */}
+      {!isMobile && (
+        <motion.div initial={{ x: "-100%", opacity: 0 }} whileHover={{ x: "200%", opacity: 1 }}
+          transition={{ duration: 0.65, ease: "easeInOut" }}
+          className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/8 to-transparent skew-x-12 pointer-events-none z-10" />
+      )}
+
       {/* Image */}
       <motion.img src={item.image} alt={item.title}
         animate={{ scale: hov ? 1.06 : 1 }}
@@ -109,13 +116,13 @@ export function Portfolio() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{ backgroundImage: "linear-gradient(rgba(255,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      {/* Static orbs — no animation on mobile */}
+      {/* Animated orbs — desktop only */}
       {!isMobile && (
         <>
-          <motion.div animate={{ opacity: [0.04, 0.08, 0.04] }} transition={{ duration: 8, repeat: Infinity }}
-            className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-[#FF0000] rounded-full blur-[140px] pointer-events-none" />
-          <motion.div animate={{ opacity: [0.03, 0.06, 0.03] }} transition={{ duration: 7, repeat: Infinity, delay: 2 }}
-            className="absolute -bottom-40 -right-40 w-[350px] h-[350px] bg-[#FF0000] rounded-full blur-[120px] pointer-events-none" />
+          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.04, 0.09, 0.04] }} transition={{ duration: 9, repeat: Infinity }}
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#FF0000] rounded-full blur-[150px] pointer-events-none" />
+          <motion.div animate={{ scale: [1.1, 1, 1.1], opacity: [0.03, 0.07, 0.03] }} transition={{ duration: 7, repeat: Infinity, delay: 2 }}
+            className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-[#FF0000] rounded-full blur-[130px] pointer-events-none" />
         </>
       )}
 

@@ -30,8 +30,22 @@ export function Footer() {
 
       {/* Ambient glow — desktop only */}
       {!isMobile && (
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[150px] bg-[#FF0000]/5 rounded-full blur-[80px] pointer-events-none" />
+        <motion.div
+          animate={{ opacity: [0.03, 0.07, 0.03] }}
+          transition={{ duration: 6, repeat: Infinity }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[180px] bg-[#FF0000] rounded-full blur-[90px] pointer-events-none"
+        />
       )}
+
+      {/* Floating particles — desktop only */}
+      {!isMobile && [0, 1, 2, 3, 4].map((i) => (
+        <motion.div key={i}
+          animate={{ y: [0, -14, 0], opacity: [0, 0.2, 0] }}
+          transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
+          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
+          style={{ left: `${15 + i * 18}%`, bottom: `${20 + (i % 3) * 20}%` }}
+        />
+      ))}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center gap-6">
 
@@ -41,7 +55,13 @@ export function Footer() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
         >
-          <span className="text-3xl font-black tracking-tighter text-[#FF0000]">RHEN.</span>
+          <motion.span
+            animate={isMobile ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 18px #FF0000", "0 0 0px #FF0000"] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="text-3xl font-black tracking-tighter text-[#FF0000]"
+          >
+            RHEN.
+          </motion.span>
         </motion.div>
 
         {/* Nav links */}

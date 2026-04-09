@@ -59,14 +59,22 @@ export function Contact() {
 
   return (
     <section id="contact" className="py-24 bg-[#050505] relative overflow-hidden">
-      {/* Static bg orb — no animation on mobile */}
-      {!isMobile && (
-        <motion.div
-          animate={{ opacity: [0.04, 0.08, 0.04] }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#FF0000] rounded-full blur-[100px] pointer-events-none"
+      {/* Bg orb */}
+      <motion.div
+        animate={{ scale: [1, 1.15, 1], opacity: [0.04, 0.09, 0.04] }}
+        transition={{ duration: 8, repeat: Infinity }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF0000] rounded-full blur-[110px] pointer-events-none"
+      />
+
+      {/* Floating dots — desktop only */}
+      {!isMobile && [0, 1, 2, 3, 4].map((i) => (
+        <motion.div key={i}
+          animate={{ y: [0, -18, 0], opacity: [0, 0.35, 0] }}
+          transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
+          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
+          style={{ left: `${15 + i * 18}%`, top: `${20 + (i % 3) * 25}%` }}
         />
-      )}
+      ))}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
