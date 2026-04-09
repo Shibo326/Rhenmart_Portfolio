@@ -1,6 +1,11 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useMotionValue, useSpring, useScroll, useTransform } from "motion/react";
+// ═══════════════════════════════════════════════════════════════════════════
+// ADVANCED DEVICE-AWARE ANIMATION HOOKS
+// ═══════════════════════════════════════════════════════════════════════════
 
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useMotionValue, useSpring, useScroll, useTransform, useInView } from "motion/react";
+
+// ─── Device Detection ───────────────────────────────────────────────────────
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false
@@ -29,7 +34,7 @@ export function useReducedMotion() {
   return reduced;
 }
 
-// Magnetic button — desktop only, passive listener
+// ─── Magnetic Effect (Desktop Only) ─────────────────────────────────────────
 export function useMagnetic(strength = 0.3) {
   const ref = useRef<HTMLElement>(null);
   const x = useMotionValue(0);
@@ -59,7 +64,7 @@ export function useMagnetic(strength = 0.3) {
   return { ref, x: sx, y: sy };
 }
 
-// Parallax — disabled on mobile
+// ─── Parallax Scroll Effect ────────────────────────────────────────────────
 export function useParallax(speed = 0.5) {
   const ref = useRef<HTMLElement>(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -69,14 +74,89 @@ export function useParallax(speed = 0.5) {
   return { ref, y };
 }
 
-// Smooth easing presets
+// ─── Scroll Progress Hook ──────────────────────────────────────────────────
+export function useScrollProgress() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+  return scaleX;
+}
+
+// ─── Scroll Direction Detection ────────────────────────────────────────────
+export function useScrollDirection() {
+  const [direction, setDirection] = useState<"up" | "down" | null>(null);
+  const [lastY, setLastY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY > lastY && currentY > 100) {
+        setDirection("down");
+      } else if (currentY < lastY) {
+        setDirection("up");
+      }
+      setLastY(currentY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastY]);
+
+  return direction;
+}
+
+// ─── Viewport Reveal Animation ──────────────────────────────────────────────
+export function useRevealOnScroll(options = {}) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { 
+    once: true, 
+    margin: "-50px",
+    ...options 
+  });
+  return { ref, isInView };
+}
+
+// ─── Mouse Position Tracker ─────────────────────────────────────────────────
+export function useMousePosition() {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      x.set(e.clientX);
+      y.set(e.clientY);
+    };
+    window.addEventListener("mousemove", handleMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, [x, y]);
+
+  return { x, y };
+}
+
+// ─── Ripple Effect Hook ─────────────────────────────────────────────────────
+export function useRipple() {
+  const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
+
+  const addRipple = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const id = Date.now();
+    setRipples(prev => [...prev, { x, y, id }]);
+    setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 600);
+  }, []);
+
+  return { ripples, addRipple };
+}
+
+// ─── Smooth Easing Presets ──────────────────────────────────────────────────
 export const ease = {
   out: [0.22, 1, 0.36, 1] as const,
   in: [0.64, 0, 0.78, 0] as const,
   inOut: [0.76, 0, 0.24, 1] as const,
+  smooth: [0.16, 1, 0.3, 1] as const,
 };
 
-// Spring presets — tuned for smoothness
+// ─── Spring Presets ─────────────────────────────────────────────────────────
 export const springs = {
   bouncy:  { type: "spring" as const, stiffness: 260, damping: 18 },
   snappy:  { type: "spring" as const, stiffness: 340, damping: 26 },
