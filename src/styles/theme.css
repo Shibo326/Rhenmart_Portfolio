@@ -1,6 +1,5 @@
-/* ── Performance optimizations ── */
+/* ── Global Performance & Smoothness ── */
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -8,33 +7,61 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-/* GPU-accelerate animated elements */
-[data-motion], .motion-safe\:* {
+/* Promote animated elements to their own compositor layer */
+.motion-layer {
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Contain paint for sections */
+/* Sections: contain layout to prevent reflow cascade */
 section {
   contain: layout style;
 }
 
-/* Hide scrollbar on filter tabs */
+/* Scrollbar hide utility */
 .scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Prevent CLS on images */
+img { content-visibility: auto; }
+
+/* Canvas: crisp rendering */
+canvas { image-rendering: pixelated; }
+
+/* Font swap to prevent FOIT */
+@font-face { font-display: swap; }
+
+/* ── Mobile: aggressive GPU memory protection ── */
+@media (max-width: 767px) {
+  /* Reset will-change to free GPU memory */
+  * {
+    will-change: auto !important;
+    backface-visibility: visible !important;
+  }
+
+  /* Disable all backdrop-filter — single biggest perf win on mobile */
+  *[class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Reduce large blur radii that cause compositing layers */
+  *[class*="blur-["] {
+    filter: none !important;
+  }
+
+  /* Prevent transform stacking on mobile */
+  .motion-layer {
+    will-change: auto !important;
+    transform: none !important;
+  }
 }
 
-/* Prevent layout shift on images */
-img {
-  content-visibility: auto;
-}
-
-/* Reduce motion for users who prefer it */
+/* ── Reduced motion accessibility ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -43,12 +70,8 @@ img {
   }
 }
 
-/* Font display optimization */
-@font-face {
-  font-display: swap;
-}
-
-/* Optimize canvas rendering */
-canvas {
-  image-rendering: pixelated;
+/* ── Smooth transitions for interactive elements ── */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
