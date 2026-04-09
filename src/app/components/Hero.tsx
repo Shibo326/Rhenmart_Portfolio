@@ -206,7 +206,7 @@ export function Hero() {
               {[
                 { value:"5+", label:"Solo Learning Experience", icon: Sparkles, color: "#FF0000" }, 
                 { value:"7", label:"Projects", icon: Zap, color: "#FF4444" }, 
-                { value:"4x", label:"Competition Winner", icon: Github, color: "#FF0000" }
+                { value:"4x", label:"Competition Winner", icon: GithubIcon, color: "#FF0000" }
               ].map(({ value, label, icon: Icon, color }, i) => (
                 <motion.div key={i} 
                   whileHover={{ scale:1.05, y:-8 }} 
