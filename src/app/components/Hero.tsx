@@ -348,7 +348,7 @@ export function Hero() {
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
-                className="w-full h-full object-cover object-top filter contrast-110 brightness-105 rounded-full" 
+                className="w-full h-full object-cover object-top filter contrast-110 brightness-105" 
               />
 
               {/* Scan line effect */}
