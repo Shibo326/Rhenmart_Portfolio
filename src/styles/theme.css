@@ -1,0 +1,54 @@
+/* ── Performance optimizations ── */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* GPU-accelerate animated elements */
+[data-motion], .motion-safe\:* {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Contain paint for sections */
+section {
+  contain: layout style;
+}
+
+/* Hide scrollbar on filter tabs */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Prevent layout shift on images */
+img {
+  content-visibility: auto;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Font display optimization */
+@font-face {
+  font-display: swap;
+}
+
+/* Optimize canvas rendering */
+canvas {
+  image-rendering: pixelated;
+}
