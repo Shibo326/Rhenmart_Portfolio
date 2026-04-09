@@ -2,8 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useMotionValue, useSpring, useScroll, useTransform } from "motion/react";
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => 
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -16,7 +16,7 @@ export function useIsMobile() {
 
 export function useReducedMotion() {
   const [reduced, setReduced] = useState(() =>
-    typeof window !== 'undefined'
+    typeof window !== "undefined"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : false
   );
@@ -29,14 +29,14 @@ export function useReducedMotion() {
   return reduced;
 }
 
-// Magnetic button hook — desktop only, throttled
+// Magnetic button — desktop only, passive listener
 export function useMagnetic(strength = 0.3) {
   const ref = useRef<HTMLElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 20, mass: 0.5 });
-  const sy = useSpring(y, { stiffness: 200, damping: 20, mass: 0.5 });
-  const isMobile = useIsMobile();
+  const sx = useSpring(x, { stiffness: 180, damping: 22, mass: 0.4 });
+  const sy = useSpring(y, { stiffness: 180, damping: 22, mass: 0.4 });
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   const onMove = useCallback((e: MouseEvent) => {
     if (isMobile) return;
@@ -53,10 +53,7 @@ export function useMagnetic(strength = 0.3) {
     const el = ref.current; if (!el) return;
     el.addEventListener("mousemove", onMove, { passive: true });
     el.addEventListener("mouseleave", onLeave);
-    return () => {
-      el.removeEventListener("mousemove", onMove);
-      el.removeEventListener("mouseleave", onLeave);
-    };
+    return () => { el.removeEventListener("mousemove", onMove); el.removeEventListener("mouseleave", onLeave); };
   }, [onMove, onLeave, isMobile]);
 
   return { ref, x: sx, y: sy };
@@ -65,23 +62,24 @@ export function useMagnetic(strength = 0.3) {
 // Parallax — disabled on mobile
 export function useParallax(speed = 0.5) {
   const ref = useRef<HTMLElement>(null);
-  const isMobile = useIsMobile();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const range = isMobile ? 0 : 100 * speed;
+  const range = isMobile ? 0 : 80 * speed;
   const y = useTransform(scrollYProgress, [0, 1], [-range, range]);
   return { ref, y };
 }
 
-// Easing presets
+// Smooth easing presets
 export const ease = {
-  out: [0.16, 1, 0.3, 1] as const,
-  in: [0.7, 0, 0.84, 0] as const,
+  out: [0.22, 1, 0.36, 1] as const,
+  in: [0.64, 0, 0.78, 0] as const,
   inOut: [0.76, 0, 0.24, 1] as const,
 };
 
-// Spring presets
+// Spring presets — tuned for smoothness
 export const springs = {
-  bouncy: { type: "spring" as const, stiffness: 300, damping: 20 },
-  snappy: { type: "spring" as const, stiffness: 400, damping: 30 },
-  smooth: { type: "spring" as const, stiffness: 100, damping: 20 },
+  bouncy:  { type: "spring" as const, stiffness: 260, damping: 18 },
+  snappy:  { type: "spring" as const, stiffness: 340, damping: 26 },
+  smooth:  { type: "spring" as const, stiffness: 90,  damping: 20 },
+  gentle:  { type: "spring" as const, stiffness: 140, damping: 22 },
 };

@@ -94,8 +94,8 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
       {!done && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
+          exit={{ opacity: 0, scale: 1.03 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-[9999] bg-[#030303] flex flex-col items-center justify-center overflow-hidden"
         >
           <ParticleCanvas />

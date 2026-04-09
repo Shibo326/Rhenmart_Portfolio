@@ -109,17 +109,17 @@ export function About() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent pointer-events-none" />
 
-              {/* Floating skill badges — hidden on mobile to avoid overlap */}
-              {skills.map(({ label, icon: Icon }, i) => (
+              {/* Floating skill badges — desktop only */}
+              {!isMobile && skills.map(({ label, icon: Icon }, i) => (
                 <motion.div
                   key={label}
                   initial={{ opacity: 0, x: 30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
-                  transition={{ delay: 0.5 + i * 0.15 }}
-                  animate={{ y: [0, -4, 0] }}
-                  className="absolute right-3 hidden sm:flex items-center gap-2 bg-[#111]/90 border border-white/10 rounded-xl px-3 py-2 backdrop-blur-sm shadow-lg"
-                  style={{ top: `${25 + i * 28}%` } as React.CSSProperties}
+                  transition={{ delay: 0.5 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                  animate={{ y: [0, -5, 0] }}
+                  style={{ top: `${25 + i * 28}%`, animationDuration: `${3 + i * 0.5}s`, animationDelay: `${i * 0.4}s` } as React.CSSProperties}
+                  className="absolute right-3 flex items-center gap-2 bg-[#111]/90 border border-white/10 rounded-xl px-3 py-2 shadow-lg"
                 >
                   <Icon size={14} className="text-[#FF0000]" />
                   <span className="text-white text-xs font-medium">{label}</span>

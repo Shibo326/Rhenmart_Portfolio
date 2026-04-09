@@ -24,7 +24,7 @@ const LiveBackground = memo(function LiveBackground() {
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!ctx) return;
 
     const resize = () => {
@@ -95,19 +95,19 @@ const LiveBackground = memo(function LiveBackground() {
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none opacity-30" style={{ zIndex: -1, contain: "strict" }} />;
 });
 
-// ── Scroll progress bar ─────────────────────────────────────────────────────
+// ── Scroll progress bar — smoother spring ──────────────────────────────────
 const ScrollProgressBar = memo(function ScrollProgressBar() {
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 80, damping: 30 });
+  const scaleX = useSpring(scrollYProgress, { stiffness: 60, damping: 25, restDelta: 0.001 });
   return (
     <motion.div
       style={{ scaleX, transformOrigin: "0%" }}
-      className="fixed top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF0000] to-[#FF4444] z-[100]"
+      className="fixed top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF0000] z-[100]"
     />
   );
 });
 
-// ── Section reveal ──────────────────────────────────────────────────────────
+// ── Section reveal — smoother easing ───────────────────────────────────────
 const RevealSection = memo(function RevealSection({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -116,7 +116,7 @@ const RevealSection = memo(function RevealSection({ children }: { children: Reac
     const el = ref.current; if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.05, rootMargin: "0px 0px -60px 0px" }
+      { threshold: 0.04, rootMargin: "0px 0px -40px 0px" }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -125,9 +125,9 @@ const RevealSection = memo(function RevealSection({ children }: { children: Reac
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: reduceEffects ? 0 : 50 }}
+      initial={{ opacity: 0, y: reduceEffects ? 0 : 40 }}
       animate={visible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
