@@ -105,7 +105,7 @@ export function About() {
                 fetchPriority="low"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.6 }}
-                className="w-full h-full object-cover filter contrast-125 saturate-50 group-hover:saturate-100 transition-all duration-700"
+                className="w-full h-full object-cover object-top filter contrast-125 saturate-50 group-hover:saturate-100 transition-all duration-700 rounded-full"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent pointer-events-none" />
 
