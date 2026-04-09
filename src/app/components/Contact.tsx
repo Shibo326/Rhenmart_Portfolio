@@ -2,7 +2,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { Send, Mail, Phone, MapPin, CheckCircle, AlertCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import { StellarBackground } from "./StellarBackground";
+
+const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
 // ─── EmailJS Configuration ─────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID = "service_6r1ytvj";
@@ -58,28 +59,14 @@ export function Contact() {
 
   return (
     <section id="contact" className="py-24 bg-[#050505] relative overflow-hidden">
-      {/* Stellar background with orbital rings */}
-      <div className="absolute inset-0">
-        <StellarBackground density="low" showOrbitalRings={true} />
-      </div>
-
-      {/* Animated bg */}
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.05, 0.1, 0.05] }}
-        transition={{ duration: 8, repeat: Infinity }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FF0000] rounded-full blur-[120px] pointer-events-none"
-      />
-
-      {/* Floating dots */}
-      {[...Array(5)].map((_, i) => (
+      {/* Static bg orb — no animation on mobile */}
+      {!isMobile && (
         <motion.div
-          key={i}
-          animate={{ y: [0, -20, 0], opacity: [0, 0.4, 0] }}
-          transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
-          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
-          style={{ left: `${15 + i * 18}%`, top: `${20 + (i % 3) * 25}%` }}
+          animate={{ opacity: [0.04, 0.08, 0.04] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#FF0000] rounded-full blur-[100px] pointer-events-none"
         />
-      ))}
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
@@ -185,7 +172,7 @@ export function Contact() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden"
+            className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 relative overflow-hidden"
           >
             {/* Shimmer on load */}
             <motion.div
