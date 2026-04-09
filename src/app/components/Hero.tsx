@@ -28,8 +28,8 @@ export function Hero() {
     <section ref={sectionRef} id="home"
       className="min-h-screen w-full flex items-center relative overflow-hidden bg-[#050505]">
 
-      {/* Static bg orbs — no animation on mobile */}
-      {!reduceHero && (
+      {/* Bg orbs — desktop only, mobile gets very subtle static version */}
+      {!reduceHero ? (
         <>
           <motion.div animate={{ opacity: [0.15, 0.25, 0.15] }}
             transition={{ duration: 8, repeat: Infinity }}
@@ -38,6 +38,8 @@ export function Hero() {
             transition={{ duration: 10, repeat: Infinity, delay: 2 }}
             className="absolute bottom-1/4 -right-[15%] w-[350px] h-[350px] bg-red-900/15 rounded-full blur-[120px] pointer-events-none" />
         </>
+      ) : (
+        <div className="absolute top-1/4 -left-[20%] w-[250px] h-[250px] bg-[#FF0000]/8 rounded-full blur-[80px] pointer-events-none" />
       )}
 
       {/* Floating particles — reduced, desktop only */}
@@ -299,7 +301,7 @@ export function Hero() {
               />
             ))}
 
-            {/* Animated gradient border with glow */}
+            {/* Animated gradient border — reduced on mobile */}
             <div className="absolute -inset-2 sm:-inset-3 rounded-[2.5rem] pointer-events-none">
               <motion.div
                 animate={{
@@ -314,20 +316,16 @@ export function Hero() {
                   WebkitMaskComposite: "xor",
                   maskComposite: "exclude",
                   padding: "2px",
-                  opacity: 0.6,
-                  filter: "blur(1px)"
+                  opacity: reduceHero ? 0.2 : 0.55,
                 }}
               />
             </div>
 
-            {/* Outer glow */}
-            <motion.div 
-              animate={{ 
-                opacity: [0.15, 0.25, 0.15],
-                scale: [0.95, 1, 0.95]
-              }}
+            {/* Outer glow — much softer on mobile */}
+            <motion.div
+              animate={{ opacity: reduceHero ? [0.04, 0.07, 0.04] : [0.12, 0.2, 0.12] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute inset-0 rounded-[2.5rem] bg-[#FF0000]/10 blur-2xl -z-10" 
+              className="absolute inset-0 rounded-[2.5rem] bg-[#FF0000]/10 blur-2xl -z-10"
             />
 
             {/* Image container with enhanced effects */}
@@ -335,7 +333,7 @@ export function Hero() {
               animate={{ y:[0,-12,0] }} 
               transition={{ repeat:Infinity, duration:6, ease:"easeInOut" }}
               whileHover={{ scale: 1.02 }}
-              className="relative w-full max-w-[220px] sm:max-w-[280px] md:max-w-[360px] aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-black/60 via-black/30 to-black/60 border border-white/20 shadow-[0_0_60px_rgba(255,0,0,0.2)] group-hover:shadow-[0_0_90px_rgba(255,0,0,0.4)] transition-all duration-700">
+              className={`relative w-full max-w-[220px] sm:max-w-[280px] md:max-w-[360px] aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-black/60 via-black/30 to-black/60 border border-white/20 transition-all duration-700 ${reduceHero ? "shadow-[0_0_20px_rgba(255,0,0,0.1)]" : "shadow-[0_0_60px_rgba(255,0,0,0.2)] group-hover:shadow-[0_0_90px_rgba(255,0,0,0.4)]"}`}>
               
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-transparent z-10 pointer-events-none" />
