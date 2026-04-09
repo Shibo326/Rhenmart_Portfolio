@@ -286,8 +286,8 @@ export function Hero() {
             className="order-1 md:order-2 flex justify-center md:justify-end relative group">
 
             {/* Stellar background with orbital rings */}
-            <div className="absolute inset-0 rounded-[2.5rem] -z-5">
-              <StellarBackground density="medium" showOrbitalRings={!reduceHero} className="rounded-[2.5rem]" />
+            <div className="absolute inset-0 rounded-full -z-5">
+              <StellarBackground density="medium" showOrbitalRings={!reduceHero} className="rounded-full" />
             </div>
 
             {/* Orbital rings — desktop only */}
@@ -297,18 +297,16 @@ export function Hero() {
                 animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
                 transition={{ duration: 40 + i * 15, repeat: Infinity, ease: "linear" }}
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#FF0000]/10 pointer-events-none"
-                style={{ width: `${300 + i * 60}px`, height: `${370 + i * 75}px` }}
+                style={{ width: `${300 + i * 60}px`, height: `${300 + i * 60}px` }}
               />
             ))}
 
             {/* Animated gradient border — reduced on mobile */}
-            <div className="absolute -inset-2 sm:-inset-3 rounded-[2.5rem] pointer-events-none">
+            <div className="absolute -inset-2 sm:-inset-3 rounded-full pointer-events-none">
               <motion.div
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-                }}
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 rounded-[2.5rem]"
+                className="absolute inset-0 rounded-full"
                 style={{
                   background: "linear-gradient(90deg, #FF0000, #FF4444, #FF8888, #FF4444, #FF0000)",
                   backgroundSize: "200% 100%",
@@ -325,7 +323,7 @@ export function Hero() {
             <motion.div
               animate={{ opacity: reduceHero ? [0.04, 0.07, 0.04] : [0.12, 0.2, 0.12] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute inset-0 rounded-[2.5rem] bg-[#FF0000]/10 blur-2xl -z-10"
+              className="absolute inset-0 rounded-full bg-[#FF0000]/10 blur-2xl -z-10"
             />
 
             {/* Image container with enhanced effects */}
@@ -333,7 +331,7 @@ export function Hero() {
               animate={{ y:[0,-12,0] }} 
               transition={{ repeat:Infinity, duration:6, ease:"easeInOut" }}
               whileHover={{ scale: 1.02 }}
-              className={`relative w-full max-w-[220px] sm:max-w-[280px] md:max-w-[360px] aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-black/60 via-black/30 to-black/60 border border-white/20 transition-all duration-700 ${reduceHero ? "shadow-[0_0_20px_rgba(255,0,0,0.1)]" : "shadow-[0_0_60px_rgba(255,0,0,0.2)] group-hover:shadow-[0_0_90px_rgba(255,0,0,0.4)]"}`}>
+              className={`relative w-full max-w-[220px] sm:max-w-[280px] md:max-w-[340px] aspect-square rounded-full overflow-hidden bg-gradient-to-br from-black/60 via-black/30 to-black/60 border border-white/20 transition-all duration-700 ${reduceHero ? "shadow-[0_0_20px_rgba(255,0,0,0.1)]" : "shadow-[0_0_60px_rgba(255,0,0,0.2)] group-hover:shadow-[0_0_90px_rgba(255,0,0,0.4)]"}`}>
               
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-transparent z-10 pointer-events-none" />

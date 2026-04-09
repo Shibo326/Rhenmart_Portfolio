@@ -53,8 +53,8 @@ export function About() {
             className="col-span-1 md:col-span-5 relative group"
           >
             {/* Stellar background — desktop only */}
-            <div className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] overflow-hidden pointer-events-none -z-5">
-              {!isMobile && <StellarBackground density="low" showOrbitalRings={false} className="rounded-t-[10rem] rounded-b-[2rem]" />}
+            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none -z-5">
+              {!isMobile && <StellarBackground density="low" showOrbitalRings={false} className="rounded-full" />}
             </div>
 
             {/* Orbital rings — desktop only */}
@@ -63,7 +63,7 @@ export function About() {
                 key={`about-ring-${i}`}
                 animate={{ rotate: i % 2 === 0 ? -360 : 360 }}
                 transition={{ duration: 40 + i * 15, repeat: Infinity, ease: "linear" }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-t-[10rem] rounded-b-[2rem] border border-[#FF0000]/10 pointer-events-none"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#FF0000]/10 pointer-events-none"
                 style={{
                   width: `calc(100% + ${30 + i * 40}px)`,
                   height: `calc(100% + ${30 + i * 40}px)`,
@@ -73,11 +73,11 @@ export function About() {
 
             {/* Gradient border — desktop only */}
             {!isMobile && (
-              <div className="absolute -inset-2 rounded-t-[10rem] rounded-b-[2rem] pointer-events-none">
+              <div className="absolute -inset-2 rounded-full pointer-events-none">
                 <motion.div
                   animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] opacity-30"
+                  className="absolute inset-0 rounded-full opacity-30"
                   style={{
                     background: "linear-gradient(90deg, #FF0000, #FF4444, #FF8888, #FF4444, #FF0000)",
                     backgroundSize: "200% 100%",
@@ -93,10 +93,10 @@ export function About() {
             <motion.div
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.4 }}
-              className="absolute inset-0 bg-[#FF0000] rounded-t-[10rem] rounded-b-[2rem] blur-2xl opacity-15 group-hover:opacity-30 transition-opacity duration-500"
+              className="absolute inset-0 bg-[#FF0000] rounded-full blur-2xl opacity-15 group-hover:opacity-30 transition-opacity duration-500"
             />
 
-            <div className="aspect-[4/5] relative rounded-t-[10rem] rounded-b-[2rem] overflow-hidden border border-white/10 bg-gradient-to-br from-black/40 via-black/20 to-black/40">
+            <div className="aspect-square relative rounded-full overflow-hidden border border-white/10 bg-gradient-to-br from-black/40 via-black/20 to-black/40">
               <motion.img
                 src={secondProfileImg}
                 alt="About Rhenmart"
