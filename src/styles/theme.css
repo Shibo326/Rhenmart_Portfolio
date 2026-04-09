@@ -8,11 +8,39 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-/* GPU-accelerate animated elements */
-[data-motion], .motion-safe\:* {
+/* GPU-accelerate only actively animating elements */
+[data-motion] {
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+/* On mobile — disable will-change globally to prevent GPU memory crash */
+@media (max-width: 767px) {
+  * {
+    will-change: auto !important;
+    transform: none !important;
+    backface-visibility: visible !important;
+  }
+  /* Re-enable only for critical animated elements */
+  [data-motion-safe] {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+  /* Disable all backdrop-filter on mobile — very expensive */
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Reduce blur effects */
+  [class*="blur-["] {
+    filter: none !important;
+  }
 }
 
 /* Contain paint for sections */

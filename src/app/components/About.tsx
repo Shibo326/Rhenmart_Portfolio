@@ -4,6 +4,8 @@ import secondProfileImg from "../../Image/new9249-_DSC0331.jpg";
 import { generateResume } from "../utils/generateResume";
 import { StellarBackground } from "./StellarBackground";
 
+const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
 const skills = [
   { label: "UI/UX Design", icon: Sparkles },
   { label: "Prototyping", icon: Lightbulb },
@@ -13,12 +15,14 @@ const skills = [
 export function About() {
   return (
     <section id="about" className="py-24 bg-[#050505] relative overflow-hidden">
-      {/* Animated bg orb */}
-      <motion.div
-        animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.2, 0.1] }}
-        transition={{ duration: 10, repeat: Infinity }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF0000]/10 rounded-full blur-[120px] pointer-events-none"
-      />
+      {/* Bg orb — static on mobile */}
+      {!isMobile && (
+        <motion.div
+          animate={{ opacity: [0.08, 0.15, 0.08] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#FF0000]/10 rounded-full blur-[100px] pointer-events-none"
+        />
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 z-10 relative">
         {/* Section label */}
@@ -48,48 +52,43 @@ export function About() {
             transition={{ duration: 0.7 }}
             className="col-span-1 md:col-span-5 relative group"
           >
-            {/* Stellar animated background with orbital rings */}
+            {/* Stellar background — desktop only */}
             <div className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] overflow-hidden pointer-events-none -z-5">
-              <StellarBackground density="medium" showOrbitalRings={true} className="rounded-t-[10rem] rounded-b-[2rem]" />
+              {!isMobile && <StellarBackground density="low" showOrbitalRings={false} className="rounded-t-[10rem] rounded-b-[2rem]" />}
             </div>
 
-            {/* Additional orbital rings around portrait */}
-            {[...Array(2)].map((_, i) => (
+            {/* Orbital rings — desktop only */}
+            {!isMobile && [0, 1].map((i) => (
               <motion.div
                 key={`about-ring-${i}`}
                 animate={{ rotate: i % 2 === 0 ? -360 : 360 }}
-                transition={{
-                  duration: 35 + i * 15,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
+                transition={{ duration: 40 + i * 15, repeat: Infinity, ease: "linear" }}
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-t-[10rem] rounded-b-[2rem] border border-[#FF0000]/10 pointer-events-none"
                 style={{
                   width: `calc(100% + ${30 + i * 40}px)`,
                   height: `calc(100% + ${30 + i * 40}px)`,
-                  boxShadow: `0 0 20px rgba(255,0,0,0.08)`
                 }}
               />
             ))}
 
-            {/* Animated gradient border */}
-            <div className="absolute -inset-2 rounded-t-[10rem] rounded-b-[2rem] pointer-events-none">
-              <motion.div
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-                }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] opacity-30"
-                style={{
-                  background: "linear-gradient(90deg, #FF0000, #FF4444, #FF8888, #FF4444, #FF0000)",
-                  backgroundSize: "200% 100%",
-                  WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                  WebkitMaskComposite: "xor",
-                  maskComposite: "exclude",
-                  padding: "2px"
-                }}
-              />
-            </div>
+            {/* Gradient border — desktop only */}
+            {!isMobile && (
+              <div className="absolute -inset-2 rounded-t-[10rem] rounded-b-[2rem] pointer-events-none">
+                <motion.div
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] opacity-30"
+                  style={{
+                    background: "linear-gradient(90deg, #FF0000, #FF4444, #FF8888, #FF4444, #FF0000)",
+                    backgroundSize: "200% 100%",
+                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    padding: "2px"
+                  }}
+                />
+              </div>
+            )}
 
             <motion.div
               whileHover={{ scale: 1.02 }}

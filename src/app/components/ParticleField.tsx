@@ -2,13 +2,9 @@ import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 
 interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  opacity: number;
-  hue: number;
+  x: number; y: number;
+  vx: number; vy: number;
+  size: number; opacity: number;
 }
 
 export function ParticleField({ density = 50, color = "255,0,0" }: { density?: number; color?: string }) {
@@ -20,76 +16,81 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
+    const isMobile = window.innerWidth < 768;
+    const isLowEnd = navigator.hardwareConcurrency <= 4;
+
+    // Drastically reduce on mobile/low-end
+    const count = isMobile || isLowEnd
+      ? Math.floor(density * 0.2)
+      : Math.floor(density * 0.6);
+
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
     resize();
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resize, { passive: true });
 
-    const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? Math.floor(density * 0.4) : density;
-    
-    const particles: Particle[] = Array.from({ length: particleCount }, () => ({
+    const particles: Particle[] = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      size: 0.8 + Math.random() * 1.5,
-      opacity: 0.1 + Math.random() * 0.4,
-      hue: Math.random() * 20 - 10,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+      size: 0.8 + Math.random() * 1.2,
+      opacity: 0.08 + Math.random() * 0.25,
     }));
 
+    // Connection distance — smaller = fewer calculations
+    const connDist = isMobile ? 0 : 100; // disable connections on mobile entirely
+
     let animationFrame: number;
-    const draw = () => {
+    let lastTime = 0;
+    const fps = isMobile ? 24 : 40; // cap fps
+    const interval = 1000 / fps;
+
+    const draw = (timestamp: number) => {
+      animationFrame = requestAnimationFrame(draw);
+      if (timestamp - lastTime < interval) return;
+      lastTime = timestamp;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((p) => {
+      for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
-        
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      });
+      }
 
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          if (distance < 120) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            const alpha = (1 - distance / 120) * 0.08;
-            ctx.strokeStyle = `rgba(${color},${alpha})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
+      // Connections — desktop only
+      if (connDist > 0) {
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const d = dx * dx + dy * dy;
+            if (d < connDist * connDist) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(${color},${(1 - Math.sqrt(d) / connDist) * 0.06})`;
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
           }
         }
       }
 
-      // Draw particles
-      particles.forEach((p) => {
+      // Draw particles — no radial gradient on mobile
+      for (const p of particles) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${color},${p.opacity})`;
         ctx.fill();
-        
-        // Glow effect
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-        gradient.addColorStop(0, `rgba(${color},${p.opacity * 0.3})`);
-        gradient.addColorStop(1, `rgba(${color},0)`);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-      });
-
-      animationFrame = requestAnimationFrame(draw);
+      }
     };
-    
-    draw();
+
+    animationFrame = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(animationFrame);
@@ -100,38 +101,36 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ willChange: "transform", contain: "strict" }}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: -1, contain: "strict" }}
     />
   );
 }
 
-// Floating orbs with blur
+// Floating orbs — reduced, no blur on mobile
 export function FloatingOrbs() {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  if (isMobile) return null; // skip entirely on mobile
+
   return (
     <>
-      {[...Array(5)].map((_, i) => (
+      {[0, 1, 2].map((i) => (
         <motion.div
           key={i}
           animate={{
-            x: [0, Math.random() * 100 - 50, 0],
-            y: [0, Math.random() * 100 - 50, 0],
-            scale: [1, 1.2, 1],
-            opacity: [0.03, 0.08, 0.03],
+            x: [0, (i % 2 === 0 ? 40 : -40), 0],
+            y: [0, (i % 2 === 0 ? -30 : 30), 0],
+            opacity: [0.03, 0.07, 0.03],
           }}
-          transition={{
-            duration: 8 + i * 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.5,
-          }}
-          className="absolute rounded-full blur-[120px] pointer-events-none"
+          transition={{ duration: 10 + i * 3, repeat: Infinity, ease: "easeInOut", delay: i * 1.5 }}
+          className="fixed rounded-full blur-[100px] pointer-events-none"
           style={{
-            width: `${300 + i * 50}px`,
-            height: `${300 + i * 50}px`,
-            background: `radial-gradient(circle, rgba(255,${i * 20},0,0.4) 0%, transparent 70%)`,
-            left: `${i * 20}%`,
-            top: `${i * 15}%`,
+            width: `${280 + i * 40}px`,
+            height: `${280 + i * 40}px`,
+            background: `radial-gradient(circle, rgba(255,${i * 15},0,0.35) 0%, transparent 70%)`,
+            left: `${i * 30}%`,
+            top: `${i * 20}%`,
+            zIndex: -2,
           }}
         />
       ))}

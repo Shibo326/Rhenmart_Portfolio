@@ -1,51 +1,52 @@
 import { motion, useScroll, useTransform } from "motion/react";
-import { Linkedin, ArrowRight, Instagram, Facebook, Github, Download, Sparkles, Zap } from "lucide-react";
+import { LinkedinIcon, ArrowRight, InstagramIcon, FacebookIcon, GithubIcon, Download, Sparkles, Zap } from "lucide-react";
 import { useRef, useState } from "react";
 import profileImg from "../../Image/Rhenmart_Profile.jpeg";
 import { ease, springs } from "../hooks/useDeviceAnimations";
 import { generateResume } from "../utils/generateResume";
 import { StellarBackground } from "./StellarBackground";
 
+const reduceHero = typeof window !== "undefined" && window.innerWidth < 768;
+
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
-  const imgY = useTransform(scrollYProgress, [0, 1], [0, -60]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, 40]);
-  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const imgY = useTransform(scrollYProgress, [0, 1], [0, reduceHero ? 0 : -60]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, reduceHero ? 0 : 40]);
+  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, reduceHero ? 1 : 0]);
   
   const [hoveredStat, setHoveredStat] = useState<number | null>(null);
 
   const socials = [
-    { href: "https://github.com/Shibo326", icon: <Github size={20} />, color: "#333", shadow: "rgba(255,255,255,0.2)", label: "GitHub" },
-    { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: <Linkedin size={20} />, color: "#0077B5", shadow: "rgba(0,119,181,0.5)", label: "LinkedIn" },
-    { href: "https://www.instagram.com/_rhenmart_/", icon: <Instagram size={20} />, color: "#E1306C", shadow: "rgba(225,48,108,0.5)", label: "Instagram" },
-    { href: "https://www.facebook.com/rhenmart1234", icon: <Facebook size={20} />, color: "#1877F2", shadow: "rgba(24,119,242,0.5)", label: "Facebook" },
+    { href: "https://github.com/Shibo326", icon: <GithubIcon size={20} />, color: "#333", shadow: "rgba(255,255,255,0.2)", label: "GitHub" },
+    { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: <LinkedinIcon size={20} />, color: "#0077B5", shadow: "rgba(0,119,181,0.5)", label: "LinkedIn" },
+    { href: "https://www.instagram.com/_rhenmart_/", icon: <InstagramIcon size={20} />, color: "#E1306C", shadow: "rgba(225,48,108,0.5)", label: "Instagram" },
+    { href: "https://www.facebook.com/rhenmart1234", icon: <FacebookIcon size={20} />, color: "#1877F2", shadow: "rgba(24,119,242,0.5)", label: "Facebook" },
   ];
 
   return (
     <section ref={sectionRef} id="home"
       className="min-h-screen w-full flex items-center relative overflow-hidden bg-[#050505]">
 
-      {/* Enhanced animated bg orbs */}
-      <motion.div animate={{ scale: [1,1.3,1], opacity: [0.2,0.4,0.2], rotate: [0, 180, 0] }}
-        transition={{ duration: 10, repeat: Infinity }}
-        className="absolute top-1/4 -left-[15%] w-[500px] h-[500px] md:w-[600px] md:h-[600px] bg-[#FF0000]/25 rounded-full blur-[140px] pointer-events-none" />
-      <motion.div animate={{ scale: [1.2,1,1.2], opacity: [0.15,0.35,0.15], rotate: [0, -180, 0] }}
-        transition={{ duration: 12, repeat: Infinity, delay: 2 }}
-        className="absolute bottom-1/4 -right-[15%] w-[450px] h-[450px] md:w-[600px] md:h-[600px] bg-red-900/20 rounded-full blur-[140px] pointer-events-none" />
+      {/* Static bg orbs — no animation on mobile */}
+      {!reduceHero && (
+        <>
+          <motion.div animate={{ opacity: [0.15, 0.25, 0.15] }}
+            transition={{ duration: 8, repeat: Infinity }}
+            className="absolute top-1/4 -left-[15%] w-[400px] h-[400px] bg-[#FF0000]/20 rounded-full blur-[120px] pointer-events-none" />
+          <motion.div animate={{ opacity: [0.08, 0.15, 0.08] }}
+            transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+            className="absolute bottom-1/4 -right-[15%] w-[350px] h-[350px] bg-red-900/15 rounded-full blur-[120px] pointer-events-none" />
+        </>
+      )}
 
-      {/* Floating particles — enhanced */}
-      {[...Array(12)].map((_, i) => (
+      {/* Floating particles — reduced, desktop only */}
+      {!reduceHero && [0,1,2,3,4].map((i) => (
         <motion.div key={i}
-          animate={{ 
-            y: [0, -30, 0], 
-            opacity: [0, 0.6, 0], 
-            scale: [0.5, 1.2, 0.5],
-            rotate: [0, 180, 360]
-          }}
-          transition={{ duration: 4 + i * 0.5, repeat: Infinity, delay: i * 0.5 }}
-          className="absolute w-1.5 h-1.5 bg-[#FF0000] rounded-full pointer-events-none"
-          style={{ left: `${5 + i * 8}%`, top: `${20 + (i % 5) * 15}%` }} />
+          animate={{ y: [0, -20, 0], opacity: [0, 0.4, 0] }}
+          transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.8 }}
+          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
+          style={{ left: `${10 + i * 18}%`, top: `${25 + (i % 3) * 20}%` }} />
       ))}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-20 md:py-0 md:min-h-screen flex items-center">
@@ -284,25 +285,17 @@ export function Hero() {
 
             {/* Stellar background with orbital rings */}
             <div className="absolute inset-0 rounded-[2.5rem] -z-5">
-              <StellarBackground density="high" showOrbitalRings={true} className="rounded-[2.5rem]" />
+              <StellarBackground density="medium" showOrbitalRings={!reduceHero} className="rounded-[2.5rem]" />
             </div>
 
-            {/* Additional orbital rings around portrait */}
-            {[...Array(3)].map((_, i) => (
+            {/* Orbital rings — desktop only */}
+            {!reduceHero && [0, 1].map((i) => (
               <motion.div
                 key={`portrait-ring-${i}`}
                 animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
-                transition={{
-                  duration: 30 + i * 10,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#FF0000]/15 pointer-events-none"
-                style={{
-                  width: `${280 + i * 60}px`,
-                  height: `${350 + i * 75}px`,
-                  boxShadow: `0 0 15px rgba(255,0,0,0.1)`
-                }}
+                transition={{ duration: 40 + i * 15, repeat: Infinity, ease: "linear" }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#FF0000]/10 pointer-events-none"
+                style={{ width: `${300 + i * 60}px`, height: `${370 + i * 75}px` }}
               />
             ))}
 
