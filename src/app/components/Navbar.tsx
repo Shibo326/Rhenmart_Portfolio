@@ -24,6 +24,25 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    setIsOpen(false);
+    
+    // Handle home link
+    if (href === "#home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    
+    // Handle other section links
+    const target = document.querySelector(href);
+    if (target) {
+      const offset = 80; // Account for fixed navbar
+      const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: targetPosition, behavior: "smooth" });
+    }
+  };
+
   return (
     <motion.nav
       initial={{ y: -60, opacity: 0 }}
@@ -65,7 +84,10 @@ export function Navbar() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.06, duration: 0.3 }}
-              onClick={() => setActive(link.name)}
+              onClick={(e) => {
+                handleNavClick(e, link.href);
+                setActive(link.name);
+              }}
               className="relative text-sm font-medium text-white/60 hover:text-white transition-colors duration-200 group"
             >
               {link.name}
@@ -87,6 +109,7 @@ export function Navbar() {
           transition={{ delay: 0.4, duration: 0.3 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={(e) => handleNavClick(e, "#contact")}
           className="hidden md:block px-5 py-2 bg-[#FF0000] text-white text-sm font-bold rounded-full hover:bg-red-700 transition-colors duration-200"
         >
           Hire Me
@@ -125,7 +148,7 @@ export function Navbar() {
                   initial={{ opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.25 }}
-                  onClick={() => setIsOpen(false)}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className="w-full text-center py-3 text-base font-medium text-white/60 hover:text-[#FF0000] transition-colors"
                 >
                   {link.name}
@@ -136,7 +159,7 @@ export function Navbar() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => handleNavClick(e, "#contact")}
                 className="mt-2 px-8 py-3 bg-[#FF0000] text-white font-bold rounded-full w-4/5 text-center hover:bg-red-700 transition-colors"
               >
                 Hire Me

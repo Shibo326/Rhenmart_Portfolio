@@ -1,12 +1,78 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { LinkedinIcon, ArrowRight, InstagramIcon, FacebookIcon, GithubIcon, Download, Sparkles, Zap } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import profileImg from "../../Image/Rhenmart_Profile.jpeg";
 import { ease, springs } from "../hooks/useDeviceAnimations";
 import { generateResume } from "../utils/generateResume";
 import { StellarBackground } from "./StellarBackground";
 
 const reduceHero = typeof window !== "undefined" && window.innerWidth < 768;
+
+// Typing Animation Component
+function TypingAnimation() {
+  const titles = ["Product Designer", "UI/UX Designer"];
+  const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const currentTitle = titles[currentTitleIndex];
+    
+    if (isPaused) {
+      const pauseTimer = setTimeout(() => {
+        setIsPaused(false);
+        setIsDeleting(true);
+      }, 2000); // Pause for 2 seconds before deleting
+      return () => clearTimeout(pauseTimer);
+    }
+
+    if (!isDeleting && displayText === currentTitle) {
+      setIsPaused(true);
+      return;
+    }
+
+    if (isDeleting && displayText === "") {
+      setIsDeleting(false);
+      setCurrentTitleIndex((prev) => (prev + 1) % titles.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (isDeleting) {
+        setDisplayText(currentTitle.substring(0, displayText.length - 1));
+      } else {
+        setDisplayText(currentTitle.substring(0, displayText.length + 1));
+      }
+    }, isDeleting ? 50 : 100);
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, isPaused, currentTitleIndex]);
+
+  return (
+    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF0000]">
+      <motion.span
+        animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+        transition={{ duration: 3, repeat: Infinity }}
+        className="inline-block"
+        style={{ 
+          backgroundImage: "linear-gradient(90deg, #FF0000, #FF4444, #FF0000)", 
+          backgroundClip: "text", 
+          WebkitBackgroundClip: "text", 
+          color: "transparent", 
+          backgroundSize: "200% 100%" 
+        }}
+      >
+        {displayText}
+      </motion.span>
+      <motion.span
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: 0.8, repeat: Infinity }}
+        className="inline-block w-1 h-8 sm:h-10 md:h-12 bg-[#FF0000] ml-1 align-middle"
+      />
+    </span>
+  );
+}
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -109,21 +175,7 @@ export function Hero() {
               <motion.h2 initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
                 transition={{ duration:0.5, delay:1.1, ease: ease.out }}
                 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight relative inline-block">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF0000] bg-[length:200%_100%]">
-                  <motion.span
-                    animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="inline-block"
-                    style={{ backgroundImage: "linear-gradient(90deg, #FF0000, #FF4444, #FF0000)", backgroundClip: "text", WebkitBackgroundClip: "text", color: "transparent", backgroundSize: "200% 100%" }}
-                  >
-                    UI/UX Designer
-                  </motion.span>
-                </span>
-                <motion.span
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="inline-block w-1 h-8 sm:h-10 md:h-12 bg-[#FF0000] ml-1 align-middle"
-                />
+                <TypingAnimation />
               </motion.h2>
             </div>
 
@@ -206,7 +258,7 @@ export function Hero() {
               transition={{ duration:0.5, delay:1.7, ease: ease.out }}
               className="grid grid-cols-3 gap-4 sm:gap-6">
               {[
-                { value:"5+", label:"Solo Learning Experience", icon: Sparkles, color: "#FF0000" }, 
+                { value:"5+", label:"Years of Solo Learning Experience", icon: Sparkles, color: "#FF0000" }, 
                 { value:"7", label:"Projects", icon: Zap, color: "#FF4444" }, 
                 { value:"4x", label:"Competition Winner", icon: GithubIcon, color: "#FF0000" }
               ].map(({ value, label, icon: Icon, color }, i) => (

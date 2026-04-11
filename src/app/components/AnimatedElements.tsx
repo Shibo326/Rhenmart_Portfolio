@@ -1,18 +1,91 @@
-import { motion } from "motion/react";
+import { motion, Transition, MotionProps } from "motion/react";
 import { ReactNode } from "react";
 
-// Magnetic button with enhanced hover
+// ═══════════════════════════════════════════════════════════════════════════
+// TYPE DEFINITIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+type MagneticButtonProps = MotionProps & {
+  children: ReactNode;
+  className?: string;
+};
+
+interface TiltCardProps {
+  children: ReactNode;
+  className?: string;
+}
+
+interface FloatingBadgeProps {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}
+
+interface PulseDotProps {
+  color?: string;
+  size?: number;
+}
+
+interface AnimatedGradientBorderProps {
+  className?: string;
+  duration?: number;
+  color?: string;
+}
+
+interface GradientTextProps {
+  children: ReactNode;
+  className?: string;
+}
+
+interface StaggerContainerProps {
+  children: ReactNode;
+  className?: string;
+  staggerDelay?: number;
+}
+
+interface FadeInItemProps {
+  children: ReactNode;
+  className?: string;
+}
+
+interface GlowOrbProps {
+  size?: number;
+  color?: string;
+  blur?: number;
+  opacity?: number;
+  className?: string;
+}
+
+interface LoadingSpinnerProps {
+  size?: number;
+  color?: string;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ANIMATION CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SPRING_TRANSITION: Transition = {
+  type: "spring",
+  stiffness: 400,
+  damping: 25,
+};
+
+const TILT_TRANSITION: Transition = {
+  type: "spring",
+  stiffness: 300,
+  damping: 20,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
 export function MagneticButton({ 
   children, 
   className = "",
-  onClick,
   ...props 
-}: { 
-  children: ReactNode; 
-  className?: string;
-  onClick?: () => void;
-  [key: string]: any;
-}) {
+}: MagneticButtonProps) {
   return (
     <motion.button
       whileHover={{ 
@@ -20,9 +93,8 @@ export function MagneticButton({
         boxShadow: "0 0 25px rgba(255,0,0,0.5)"
       }}
       whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      transition={SPRING_TRANSITION}
       className={className}
-      onClick={onClick}
       {...props}
     >
       {children}
@@ -30,14 +102,10 @@ export function MagneticButton({
   );
 }
 
-// Animated card with 3D tilt
 export function TiltCard({ 
   children, 
   className = "" 
-}: { 
-  children: ReactNode; 
-  className?: string;
-}) {
+}: TiltCardProps) {
   return (
     <motion.div
       whileHover={{ 
@@ -45,7 +113,7 @@ export function TiltCard({
         rotateX: 5,
         rotateY: 5,
       }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      transition={TILT_TRANSITION}
       style={{ transformStyle: "preserve-3d" }}
       className={className}
     >
@@ -54,16 +122,11 @@ export function TiltCard({
   );
 }
 
-// Floating badge
 export function FloatingBadge({ 
   children, 
   className = "",
   delay = 0 
-}: { 
-  children: ReactNode; 
-  className?: string;
-  delay?: number;
-}) {
+}: FloatingBadgeProps) {
   return (
     <motion.div
       animate={{ 
@@ -83,14 +146,10 @@ export function FloatingBadge({
   );
 }
 
-// Pulse dot indicator
 export function PulseDot({ 
   color = "#FF0000",
   size = 8 
-}: { 
-  color?: string; 
-  size?: number;
-}) {
+}: PulseDotProps) {
   return (
     <div className="relative inline-flex" style={{ width: size, height: size }}>
       <motion.span
@@ -118,7 +177,6 @@ export function PulseDot({
   );
 }
 
-// Shimmer effect overlay
 export function ShimmerOverlay() {
   return (
     <motion.div
@@ -134,16 +192,11 @@ export function ShimmerOverlay() {
   );
 }
 
-// Animated gradient border
 export function AnimatedGradientBorder({ 
   className = "",
   duration = 3,
   color = "#FF0000"
-}: { 
-  className?: string;
-  duration?: number;
-  color?: string;
-}) {
+}: AnimatedGradientBorderProps) {
   return (
     <motion.div
       animate={{
@@ -167,14 +220,10 @@ export function AnimatedGradientBorder({
   );
 }
 
-// Animated gradient text
 export function GradientText({ 
   children, 
   className = "" 
-}: { 
-  children: ReactNode; 
-  className?: string;
-}) {
+}: GradientTextProps) {
   return (
     <motion.span
       animate={{
@@ -195,16 +244,11 @@ export function GradientText({
   );
 }
 
-// Stagger container for children
 export function StaggerContainer({ 
   children, 
   className = "",
   staggerDelay = 0.1 
-}: { 
-  children: ReactNode; 
-  className?: string;
-  staggerDelay?: number;
-}) {
+}: StaggerContainerProps) {
   return (
     <motion.div
       initial="hidden"
@@ -223,14 +267,10 @@ export function StaggerContainer({
   );
 }
 
-// Fade in item (use with StaggerContainer)
 export function FadeInItem({ 
   children, 
   className = "" 
-}: { 
-  children: ReactNode; 
-  className?: string;
-}) {
+}: FadeInItemProps) {
   return (
     <motion.div
       variants={{
@@ -248,20 +288,13 @@ export function FadeInItem({
   );
 }
 
-// Glowing orb
 export function GlowOrb({ 
   size = 400,
   color = "255,0,0",
   blur = 120,
   opacity = 0.1,
   className = ""
-}: {
-  size?: number;
-  color?: string;
-  blur?: number;
-  opacity?: number;
-  className?: string;
-}) {
+}: GlowOrbProps) {
   return (
     <motion.div
       animate={{
@@ -284,14 +317,10 @@ export function GlowOrb({
   );
 }
 
-// Loading spinner
 export function LoadingSpinner({ 
   size = 40,
   color = "#FF0000" 
-}: { 
-  size?: number; 
-  color?: string;
-}) {
+}: LoadingSpinnerProps) {
   return (
     <div className="relative inline-flex" style={{ width: size, height: size }}>
       <motion.div

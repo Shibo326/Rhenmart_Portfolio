@@ -109,7 +109,7 @@ export function Contact() {
             transition={{ delay: 0.1 }}
             className="text-white/50 max-w-xl mx-auto text-sm sm:text-base"
           >
-            Have a project in mind or just want to say hi? Feel free to reach out!
+            Let's build something impactful together.
           </motion.p>
 
           <motion.div

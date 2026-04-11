@@ -44,7 +44,7 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
       onMouseMove={handleMouseMove}
       onMouseEnter={() => !isMobile && setHovered(true)}
       onMouseLeave={handleMouseLeave}
-      className={`relative p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#0d0d0d] to-[#080808] border border-white/10 overflow-hidden group cursor-default ${service.span ? "md:col-span-8 md:col-start-3" : "md:col-span-4"}`}
+      className={`relative p-5 sm:p-10 rounded-3xl bg-gradient-to-br from-[#0d0d0d] to-[#080808] border border-white/10 overflow-hidden group cursor-default ${service.span ? "md:col-span-8 md:col-start-3" : "md:col-span-4"}`}
     >
       {/* Animated gradient bg — subtle on mobile */}
       <motion.div
@@ -101,12 +101,12 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
       {/* Number watermark */}
       <motion.span
         animate={{ opacity: hovered ? 0.1 : 0.04 }}
-        className={`absolute top-6 right-8 text-8xl font-black bg-gradient-to-br ${service.gradient} bg-clip-text text-transparent select-none pointer-events-none`}
+        className={`absolute top-4 sm:top-6 right-6 sm:right-8 text-6xl sm:text-8xl font-black bg-gradient-to-br ${service.gradient} bg-clip-text text-transparent select-none pointer-events-none`}
       >
         {service.number}
       </motion.span>
 
-      <div className="relative z-10 flex flex-col items-center text-center gap-6">
+      <div className="relative z-10 flex flex-col items-center text-center gap-4 sm:gap-6">
         {/* Icon with pulse rings */}
         <div className="relative">
           {/* Outer pulse ring */}
@@ -129,10 +129,10 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
           <motion.div
             whileHover={isMobile ? {} : { rotate: [0, -12, 12, -8, 8, 0], scale: 1.2 }}
             transition={{ duration: 0.5, type: "spring", stiffness: 280 }}
-            className={`relative p-5 bg-gradient-to-br ${service.gradient} rounded-2xl border border-white/20 shadow-lg`}
+            className={`relative p-3 sm:p-5 bg-gradient-to-br ${service.gradient} rounded-2xl border border-white/20 shadow-lg`}
             style={{ boxShadow: `0 8px 30px ${service.color}35`, transform: isMobile ? "none" : "translateZ(25px)" }}
           >
-            <Icon size={34} className="text-white" />
+            <Icon size={isMobile ? 24 : 34} className="text-white" />
             {/* Icon inner glow on hover */}
             <motion.div
               animate={{ opacity: hovered ? 0.5 : 0 }}
@@ -156,17 +156,17 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
           )}
         </div>
 
-        <div style={isMobile ? {} : { transform: "translateZ(18px)" }} className="space-y-3">
+        <div style={isMobile ? {} : { transform: "translateZ(18px)" }} className="space-y-2 sm:space-y-3">
           <motion.h3
             animate={{ color: hovered ? service.color : "#ffffff" }}
             transition={{ duration: 0.2 }}
-            className="text-2xl font-black tracking-tight"
+            className="text-xl sm:text-2xl font-black tracking-tight"
           >
             {service.title}
           </motion.h3>
           <motion.p
             animate={{ opacity: hovered ? 1 : 0.6 }}
-            className="text-white/60 leading-relaxed text-sm max-w-md mx-auto"
+            className="text-white/60 leading-relaxed text-xs sm:text-sm max-w-md mx-auto"
           >
             {service.description}
           </motion.p>

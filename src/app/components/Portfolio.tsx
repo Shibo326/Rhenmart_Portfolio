@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "motion/react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, type Variants } from "motion/react";
 import { useState, useRef, useCallback, memo } from "react";
 import { X, ExternalLink, Code, Trophy, Layers, Filter } from "lucide-react";
 import champImg from "../../Image/umak champ.jpg";
@@ -11,7 +11,7 @@ import exploringFigmaImg from "../../Image/Exploring The basics of figma.jpg";
 
 const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
-type Category = "All" | "Competition" | "Workshop" | "Seminar";
+type Category = "All" | "Competition" | "Workshop" | "Seminar" | "Case Studies";
 
 const portfolioItems = [
   { id: 1, title: "Web Design Champion", role: "Design Strategies / UI/UX", category: "Competition" as Category, image: champImg, challenge: "Build a one-page website in 2 hours.\nFast decisions. Strong UX. Tight deadline.", solution: "Created a clear design plan using available components.\nAligned closely with dev to reduce pressure.\nDelivered a structured, efficient layout on time.", impact: "1st Place — UMAK IT Skills Olympics.\nCommended for intuitive flow and clean execution.\nProved speed and quality can coexist." },
@@ -23,11 +23,31 @@ const portfolioItems = [
   { id: 7, title: "Beyond UI: Designing User Experiences", role: "Workshop Teacher / UI/UX Facilitator", category: "Workshop" as Category, image: beyondUiImg, challenge: "Shift students' mindset beyond visual design.\nTeach UX thinking, flows, and interaction design.\nMake abstract concepts tangible and applicable.", solution: "Covered user research, wireframing, and prototyping.\nUsed live Figma demos and guided exercises.\nStructured content around real-world UX principles.", impact: "Students gained a solid UX foundation.\nSeveral expressed interest in pursuing design careers.\nInspired a new generation of user-centered thinkers." },
 ];
 
-const TABS: Category[] = ["All", "Competition", "Workshop", "Seminar"];
+const TABS: Category[] = ["All", "Competition", "Workshop", "Seminar", "Case Studies"];
 const categoryConfig: Record<string, { bg: string; text: string; glow: string; dot: string; rgb: string }> = {
   Competition: { bg: "bg-[#FF0000]", text: "text-white", glow: "rgba(255,0,0,0.4)", dot: "#FF0000", rgb: "255,0,0" },
   Workshop:    { bg: "bg-blue-600",  text: "text-white", glow: "rgba(59,130,246,0.4)", dot: "#3B82F6", rgb: "59,130,246" },
   Seminar:     { bg: "bg-purple-600",text: "text-white", glow: "rgba(147,51,234,0.4)", dot: "#9333EA", rgb: "147,51,234" },
+  "Case Studies": { bg: "bg-emerald-600", text: "text-white", glow: "rgba(16,185,129,0.4)", dot: "#10B981", rgb: "16,185,129" },
+};
+
+// Mobile scroll animation variants
+const mobileCardVariants: Variants = {
+  offscreen: {
+    y: 100,
+    opacity: 0,
+    scale: 0.9,
+  },
+  onscreen: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      bounce: 0.3,
+      duration: 0.8,
+    },
+  },
 };
 
 const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { item: typeof portfolioItems[0]; index: number; onClick: () => void }) {
@@ -47,31 +67,65 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
 
   const onLeave = useCallback(() => { mx.set(0); my.set(0); setHov(false); }, [mx, my]);
 
+  // Mobile: Use scroll-triggered animation
+  if (isMobile) {
+    return (
+      <motion.div
+        initial="offscreen"
+        whileInView="onscreen"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={mobileCardVariants}
+        onClick={onClick}
+        className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
+      >
+        {/* Image */}
+        <img src={item.image} alt={item.title}
+          loading="lazy" decoding="async" className="w-full h-full object-cover" />
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+
+        {/* Category badge */}
+        <div className={`absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
+          {item.category}
+        </div>
+
+        {/* Content - always visible on mobile */}
+        <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
+          <h4 className="text-white font-bold text-base leading-tight mb-1 line-clamp-2">{item.title}</h4>
+          <p className="text-white/55 text-xs mb-2">{item.role}</p>
+          <div className="flex items-center gap-2 text-white/40 text-xs">
+            <span className="w-4 h-px bg-white/30" />
+            Tap to view
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Desktop: Use 3D tilt animation
   return (
     <motion.div ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-      style={isMobile ? {} : { rotateX: rx, rotateY: ry, transformStyle: "preserve-3d", willChange: hov ? "transform" : "auto" }}
+      style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d", willChange: hov ? "transform" : "auto" }}
       onMouseMove={onMove}
-      onMouseEnter={() => !isMobile && setHov(true)}
+      onMouseEnter={() => setHov(true)}
       onMouseLeave={onLeave}
       onClick={onClick}
       className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
     >
-      {/* Hover border glow — desktop only */}
-      {!isMobile && (
-        <motion.div animate={{ opacity: hov ? 1 : 0 }} transition={{ duration: 0.2 }}
-          className="absolute inset-0 rounded-2xl pointer-events-none z-20"
-          style={{ boxShadow: `inset 0 0 0 1.5px ${cfg.dot}, 0 0 25px ${cfg.glow}` }} />
-      )}
+      {/* Hover border glow */}
+      <motion.div animate={{ opacity: hov ? 1 : 0 }} transition={{ duration: 0.2 }}
+        className="absolute inset-0 rounded-2xl pointer-events-none z-20"
+        style={{ boxShadow: `inset 0 0 0 1.5px ${cfg.dot}, 0 0 25px ${cfg.glow}` }} />
 
-      {/* Shimmer sweep on hover — desktop only */}
-      {!isMobile && (
-        <motion.div initial={{ x: "-100%", opacity: 0 }} whileHover={{ x: "200%", opacity: 1 }}
-          transition={{ duration: 0.65, ease: "easeInOut" }}
-          className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/8 to-transparent skew-x-12 pointer-events-none z-10" />
-      )}
+      {/* Shimmer sweep on hover */}
+      <motion.div initial={{ x: "-100%", opacity: 0 }} whileHover={{ x: "200%", opacity: 1 }}
+        transition={{ duration: 0.65, ease: "easeInOut" }}
+        className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/8 to-transparent skew-x-12 pointer-events-none z-10" />
 
       {/* Image */}
       <motion.img src={item.image} alt={item.title}
@@ -106,8 +160,11 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
 export function Portfolio() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<Category>("All");
+  const [showAll, setShowAll] = useState(false);
   const selectedItem = portfolioItems.find(i => i.id === selectedId);
   const filtered = activeTab === "All" ? portfolioItems : portfolioItems.filter(i => i.category === activeTab);
+  const displayedItems = showAll ? filtered : filtered.slice(0, 9);
+  const hasMore = filtered.length > 9;
   const counts = TABS.reduce((a, t) => ({ ...a, [t]: t === "All" ? portfolioItems.length : portfolioItems.filter(i => i.category === t).length }), {} as Record<string, number>);
 
   return (
@@ -144,45 +201,186 @@ export function Portfolio() {
             className="w-10 h-[2px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mx-auto rounded-full" />
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
-          {[{ v: "7", l: "Projects" }, { v: "4", l: "Competitions" }, { v: "2", l: "Workshops" }, { v: "1", l: "Seminar" }].map(({ v, l }, i) => (
-            <motion.div key={l} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-              className="flex flex-col items-center px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl">
-              <span className="text-2xl font-black text-[#FF0000]">{v}</span>
-              <span className="text-white/40 text-[10px] uppercase tracking-widest mt-0.5">{l}</span>
-            </motion.div>
-          ))}
+        {/* Stats - Redesigned Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-10 max-w-5xl mx-auto">
+          {/* Row 1: Projects, Competitions, Workshops */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} 
+            transition={{ delay: 0, type: "spring", stiffness: 200 }}
+            className="flex flex-col justify-center items-center p-8 bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/[0.12] rounded-3xl relative overflow-hidden group hover:border-[#FF0000]/30 transition-all duration-500"
+          >
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            />
+            <span className="text-6xl sm:text-7xl font-black bg-gradient-to-br from-[#FF0000] to-[#FF4444] bg-clip-text text-transparent relative z-10">7</span>
+            <span className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] mt-2 relative z-10">Total Projects</span>
+            <motion.div 
+              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute top-5 right-5 w-1.5 h-1.5 bg-[#FF0000] rounded-full"
+            />
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} 
+            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+          >
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">4</span>
+            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Competitions</span>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} 
+            transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
+            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+          >
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">2</span>
+            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Workshops</span>
+          </motion.div>
+
+          {/* Row 2: Seminar and Case Studies - Spanning wider */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} 
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="sm:col-span-1 flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+          >
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">1</span>
+            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Seminar</span>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} 
+            transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
+            className="sm:col-span-2 flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+          >
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">0</span>
+            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Case Studies</span>
+          </motion.div>
         </div>
 
         {/* Filter Tabs */}
-        <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-none justify-start sm:justify-center px-1">
-          <div className="flex items-center gap-1.5 text-white/25 text-xs mr-1 flex-shrink-0">
-            <Filter size={11} /> Filter
+        <motion.div 
+          initial={{ opacity: 0, y: 12 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true }}
+          className="relative mb-8"
+        >
+          {/* Scroll fade indicators */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#080808] to-transparent pointer-events-none z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#080808] to-transparent pointer-events-none z-10" />
+          
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide scroll-smooth">
+            <div className="flex items-center gap-1.5 text-white/25 text-xs mr-1 flex-shrink-0">
+              <Filter size={11} /> Filter
+            </div>
+            {TABS.map(tab => {
+              const active = activeTab === tab;
+              const cfg = tab !== "All" ? categoryConfig[tab] : null;
+              return (
+                <motion.button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${active ? `${cfg?.bg ?? "bg-white"} ${cfg?.text ?? "text-black"} border-transparent shadow-lg` : "bg-white/5 text-white/40 border-white/10 hover:text-white/70 hover:border-white/20"}`}>
+                  {tab}
+                  <span className={`ml-1.5 text-[10px] ${active ? "opacity-60" : "opacity-35"}`}>{counts[tab]}</span>
+                </motion.button>
+              );
+            })}
           </div>
-          {TABS.map(tab => {
-            const active = activeTab === tab;
-            const cfg = tab !== "All" ? categoryConfig[tab] : null;
-            return (
-              <motion.button key={tab} onClick={() => setActiveTab(tab)}
-                whileTap={{ scale: 0.95 }}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${active ? `${cfg?.bg ?? "bg-white"} ${cfg?.text ?? "text-black"} border-transparent` : "bg-white/5 text-white/40 border-white/10 hover:text-white/70"}`}>
-                {tab}
-                <span className={`ml-1.5 text-[10px] ${active ? "opacity-60" : "opacity-35"}`}>{counts[tab]}</span>
-              </motion.button>
-            );
-          })}
+          
+          {/* Scroll hint - only show on mobile */}
+          {isMobile && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: [1, 0.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="flex items-center justify-center gap-1 mt-2 text-white/20 text-[10px]"
+            >
+              <span>←</span>
+              <span>Swipe to see more</span>
+              <span>→</span>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           style={isMobile ? {} : { perspective: "1000px" }}>
-          {filtered.map((item, i) => (
+          {displayedItems.map((item, i) => (
             <PortfolioCard key={`${activeTab}-${item.id}`} item={item} index={i} onClick={() => setSelectedId(item.id)} />
           ))}
         </div>
+
+        {/* See More Button */}
+        {hasMore && !showAll && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center mt-10"
+          >
+            <motion.button
+              onClick={() => setShowAll(true)}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,0,0,0.4)" }}
+              whileTap={{ scale: 0.97 }}
+              className="group relative px-8 py-3.5 bg-white/[0.04] border border-white/[0.12] text-white font-semibold rounded-full hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 transition-all duration-300 flex items-center gap-2 overflow-hidden"
+            >
+              <motion.span
+                animate={{ x: ["-100%", "200%"] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+              />
+              <span className="relative z-10">See More Projects</span>
+              <motion.span
+                animate={{ y: [0, 3, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="relative z-10"
+              >
+                ↓
+              </motion.span>
+            </motion.button>
+          </motion.div>
+        )}
+
+        {/* Show Less Button */}
+        {showAll && hasMore && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex justify-center mt-10"
+          >
+            <motion.button
+              onClick={() => {
+                setShowAll(false);
+                // Scroll to portfolio section
+                document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              className="px-8 py-3.5 bg-white/[0.04] border border-white/[0.12] text-white/70 font-semibold rounded-full hover:border-white/[0.25] hover:text-white transition-all duration-300 flex items-center gap-2"
+            >
+              <span>Show Less</span>
+              <motion.span
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                ↑
+              </motion.span>
+            </motion.button>
+          </motion.div>
+        )}
       </div>
 
       {/* Modal */}
@@ -236,7 +434,7 @@ export function Portfolio() {
                     { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
                     { icon: Code, label: "Solution", text: selectedItem.solution },
                     { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
-                  ].map(({ icon: Icon, label, text, highlight }, si) => (
+                  ].map(({ icon: Icon, label, text, highlight }) => (
                     <div key={label}>
                       <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
                         <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>

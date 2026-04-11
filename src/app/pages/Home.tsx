@@ -10,17 +10,18 @@ import { ParticleField } from "../components/ParticleField";
 import { useEffect, useRef, useState, memo } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "motion/react";
 import { ChevronUp } from "lucide-react";
+import { getAnimationConfig, detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-const isLowEnd = typeof navigator !== "undefined" && navigator.hardwareConcurrency <= 4;
-const reduceEffects = isMobile || isLowEnd;
+const config = getAnimationConfig();
+const { tier, isMobile } = detectDeviceCapability();
+const reduceEffects = tier === "low";
 
 // ── Lightweight canvas background ──────────────────────────────────────────
 const LiveBackground = memo(function LiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (reduceEffects) return; // skip entirely on mobile/low-end
+    if (!config.canvasBackground) return; // Only on high-end devices
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -34,7 +35,7 @@ const LiveBackground = memo(function LiveBackground() {
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
-    const nodeCount = 30;
+    const nodeCount = tier === "high" ? 40 : 20;
     type Node = { x: number; y: number; vx: number; vy: number; r: number };
     const nodes: Node[] = Array.from({ length: nodeCount }, () => ({
       x: Math.random() * canvas.width,
@@ -46,7 +47,7 @@ const LiveBackground = memo(function LiveBackground() {
 
     let frame: number;
     let lastTime = 0;
-    const interval = 1000 / 30; // 30fps cap
+    const interval = 1000 / config.fps;
 
     const draw = (ts: number) => {
       frame = requestAnimationFrame(draw);
@@ -91,7 +92,7 @@ const LiveBackground = memo(function LiveBackground() {
     return () => { cancelAnimationFrame(frame); window.removeEventListener("resize", resize); };
   }, []);
 
-  if (reduceEffects) return null;
+  if (!config.canvasBackground) return null;
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none opacity-30" style={{ zIndex: -1, contain: "strict" }} />;
 });
 
@@ -218,7 +219,7 @@ export function Home() {
     >
       {/* Backgrounds */}
       <LiveBackground />
-      {!reduceEffects && <ParticleField density={30} color="255,0,0" />}
+      {config.particleCount > 0 && <ParticleField density={config.particleCount} color="255,0,0" />}
       <ScrollOrbs />
       <CursorGlow />
 

@@ -26,6 +26,13 @@ section {
 }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
+/* Scrollbar hide utility (alternative name) */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 /* Prevent CLS on images */
 img { content-visibility: auto; }
 

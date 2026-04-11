@@ -161,9 +161,9 @@ export function About() {
 
             <div className="space-y-4 text-white/70 leading-relaxed text-base md:text-lg">
               {[
-                "Aspiring Junior UI/UX Designer with nearly five years of self-learning experience designing user-friendly web and mobile interfaces. Skilled in conducting user research, creating wireframes and interactive prototypes using Figma, and developing design strategies that support product goals.",
-                "My design process is research-driven and human-centered, combining deep product research, rapid prototyping, and seamless collaboration with development teams. Known for strong communication and working closely with developers to align ideas and deliver effective digital experiences.",
-                "To accelerate innovation, I integrate AI tools into my workflow — helping me iterate faster, explore creative solutions, and deliver smarter, problem-solving designs. Whether refining UX flows, creating interactive prototypes, or optimizing interfaces for accessibility and performance, I aim to create digital experiences that are both beautiful and effective.",
+                "Junior UI/UX Designer with 5 years of self-learning experience crafting user-friendly web and mobile interfaces. I specialize in user research, interactive prototyping in Figma, and design strategies that drive product success.",
+                "My process is research-driven and human-centered — combining rapid prototyping with seamless developer collaboration. I integrate AI tools to accelerate innovation, iterate faster, and deliver smarter design solutions.",
+                "From UX flows to accessible interfaces, I create digital experiences that are both beautiful and effective.",
               ].map((text, i) => (
                 <motion.p
                   key={i}
