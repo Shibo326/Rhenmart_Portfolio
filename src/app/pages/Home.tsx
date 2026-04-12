@@ -10,17 +10,18 @@ import { ParticleField } from "../components/ParticleField";
 import { useEffect, useRef, useState, memo } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "motion/react";
 import { ChevronUp } from "lucide-react";
+import { getAnimationConfig, detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-const isLowEnd = typeof navigator !== "undefined" && navigator.hardwareConcurrency <= 4;
-const reduceEffects = isMobile || isLowEnd;
+const config = getAnimationConfig();
+const { tier, isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = tier === "low" || isSafari;
 
 // ── Lightweight canvas background ──────────────────────────────────────────
 const LiveBackground = memo(function LiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (reduceEffects) return; // skip entirely on mobile/low-end
+    if (!config.canvasBackground) return; // Only on high-end devices
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -34,7 +35,7 @@ const LiveBackground = memo(function LiveBackground() {
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
-    const nodeCount = 30;
+    const nodeCount = tier === "high" ? 40 : 20;
     type Node = { x: number; y: number; vx: number; vy: number; r: number };
     const nodes: Node[] = Array.from({ length: nodeCount }, () => ({
       x: Math.random() * canvas.width,
@@ -46,7 +47,7 @@ const LiveBackground = memo(function LiveBackground() {
 
     let frame: number;
     let lastTime = 0;
-    const interval = 1000 / 30; // 30fps cap
+    const interval = 1000 / config.fps;
 
     const draw = (ts: number) => {
       frame = requestAnimationFrame(draw);
@@ -91,7 +92,7 @@ const LiveBackground = memo(function LiveBackground() {
     return () => { cancelAnimationFrame(frame); window.removeEventListener("resize", resize); };
   }, []);
 
-  if (reduceEffects) return null;
+  if (!config.canvasBackground) return null;
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none opacity-30" style={{ zIndex: -1, contain: "strict" }} />;
 });
 
@@ -134,7 +135,7 @@ const RevealSection = memo(function RevealSection({ children }: { children: Reac
   );
 });
 
-// ── Scroll orbs — desktop only, simplified ─────────────────────────────────
+// ── Scroll orbs — desktop non-Safari only ──────────────────────────────────
 const ScrollOrbs = memo(function ScrollOrbs() {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 4000], [0, -300]);
@@ -142,15 +143,16 @@ const ScrollOrbs = memo(function ScrollOrbs() {
 
   if (reduceEffects) return null;
 
+  // box-shadow replaces filter:blur — much cheaper on Safari/macOS
   return (
     <div className="fixed inset-0 z-[-2] pointer-events-none overflow-hidden">
       <motion.div
-        style={{ y: y1, willChange: "transform" }}
-        className="absolute -top-48 -left-48 w-[500px] h-[500px] bg-[#FF0000] rounded-full blur-[180px] opacity-[0.08]"
+        style={{ y: y1, willChange: "transform", boxShadow: "0 0 200px 100px rgba(255,0,0,0.08)", background: "transparent" }}
+        className="absolute -top-48 -left-48 w-[300px] h-[300px] rounded-full"
       />
       <motion.div
-        style={{ y: y2, willChange: "transform" }}
-        className="absolute -bottom-48 -right-48 w-[450px] h-[450px] bg-[#FF0000] rounded-full blur-[160px] opacity-[0.05]"
+        style={{ y: y2, willChange: "transform", boxShadow: "0 0 180px 90px rgba(255,0,0,0.05)", background: "transparent" }}
+        className="absolute -bottom-48 -right-48 w-[300px] h-[300px] rounded-full"
       />
     </div>
   );
@@ -218,7 +220,7 @@ export function Home() {
     >
       {/* Backgrounds */}
       <LiveBackground />
-      {!reduceEffects && <ParticleField density={30} color="255,0,0" />}
+      {config.particleCount > 0 && <ParticleField density={config.particleCount} color="255,0,0" />}
       <ScrollOrbs />
       <CursorGlow />
 

@@ -1,12 +1,80 @@
 import { motion, useScroll, useTransform } from "motion/react";
-import { LinkedinIcon, ArrowRight, InstagramIcon, FacebookIcon, GithubIcon, Download, Sparkles, Zap } from "lucide-react";
-import { useRef, useState } from "react";
+import { ArrowRight, Download, Sparkles, Zap, Linkedin, Github, Instagram, Facebook } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 import profileImg from "../../Image/Rhenmart_Profile.jpeg";
 import { ease, springs } from "../hooks/useDeviceAnimations";
 import { generateResume } from "../utils/generateResume";
 import { StellarBackground } from "./StellarBackground";
+import { detectDeviceCapability } from "../utils/performance";
 
-const reduceHero = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile: reduceHero, isSafari } = detectDeviceCapability();
+const reduceEffects = reduceHero || isSafari;
+
+// Typing Animation Component
+function TypingAnimation() {
+  const titles = ["Product Designer", "UI/UX Designer"];
+  const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const currentTitle = titles[currentTitleIndex];
+    
+    if (isPaused) {
+      const pauseTimer = setTimeout(() => {
+        setIsPaused(false);
+        setIsDeleting(true);
+      }, 2000); // Pause for 2 seconds before deleting
+      return () => clearTimeout(pauseTimer);
+    }
+
+    if (!isDeleting && displayText === currentTitle) {
+      setIsPaused(true);
+      return;
+    }
+
+    if (isDeleting && displayText === "") {
+      setIsDeleting(false);
+      setCurrentTitleIndex((prev) => (prev + 1) % titles.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (isDeleting) {
+        setDisplayText(currentTitle.substring(0, displayText.length - 1));
+      } else {
+        setDisplayText(currentTitle.substring(0, displayText.length + 1));
+      }
+    }, isDeleting ? 50 : 100);
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, isPaused, currentTitleIndex]);
+
+  return (
+    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF0000]">
+      <motion.span
+        animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+        transition={{ duration: 3, repeat: Infinity }}
+        className="inline-block"
+        style={{ 
+          backgroundImage: "linear-gradient(90deg, #FF0000, #FF4444, #FF0000)", 
+          backgroundClip: "text", 
+          WebkitBackgroundClip: "text", 
+          color: "transparent", 
+          backgroundSize: "200% 100%" 
+        }}
+      >
+        {displayText}
+      </motion.span>
+      <motion.span
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: 0.8, repeat: Infinity }}
+        className="inline-block w-1 h-8 sm:h-10 md:h-12 bg-[#FF0000] ml-1 align-middle"
+      />
+    </span>
+  );
+}
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -18,32 +86,35 @@ export function Hero() {
   const [hoveredStat, setHoveredStat] = useState<number | null>(null);
 
   const socials = [
-    { href: "https://github.com/Shibo326", icon: <GithubIcon size={20} />, color: "#333", shadow: "rgba(255,255,255,0.2)", label: "GitHub" },
-    { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: <LinkedinIcon size={20} />, color: "#0077B5", shadow: "rgba(0,119,181,0.5)", label: "LinkedIn" },
-    { href: "https://www.instagram.com/_rhenmart_/", icon: <InstagramIcon size={20} />, color: "#E1306C", shadow: "rgba(225,48,108,0.5)", label: "Instagram" },
-    { href: "https://www.facebook.com/rhenmart1234", icon: <FacebookIcon size={20} />, color: "#1877F2", shadow: "rgba(24,119,242,0.5)", label: "Facebook" },
+    { href: "https://github.com/Shibo326", icon: <Github size={20} />, color: "#333", shadow: "rgba(255,255,255,0.2)", label: "GitHub" },
+    { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: <Linkedin size={20} />, color: "#0077B5", shadow: "rgba(0,119,181,0.5)", label: "LinkedIn" },
+    { href: "https://www.instagram.com/_rhenmart_/", icon: <Instagram size={20} />, color: "#E1306C", shadow: "rgba(225,48,108,0.5)", label: "Instagram" },
+    { href: "https://www.facebook.com/rhenmart1234", icon: <Facebook size={20} />, color: "#1877F2", shadow: "rgba(24,119,242,0.5)", label: "Facebook" },
   ];
 
   return (
     <section ref={sectionRef} id="home"
       className="min-h-screen w-full flex items-center relative overflow-hidden bg-[#050505]">
 
-      {/* Bg orbs — desktop only, mobile gets very subtle static version */}
-      {!reduceHero ? (
+      {/* Bg orbs — box-shadow instead of blur on Safari */}
+      {!reduceEffects ? (
         <>
           <motion.div animate={{ opacity: [0.15, 0.25, 0.15] }}
             transition={{ duration: 8, repeat: Infinity }}
-            className="absolute top-1/4 -left-[15%] w-[400px] h-[400px] bg-[#FF0000]/20 rounded-full blur-[120px] pointer-events-none" />
+            className="absolute top-1/4 -left-[15%] w-[300px] h-[300px] rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 160px 80px rgba(255,0,0,0.12)", background: "transparent" }} />
           <motion.div animate={{ opacity: [0.08, 0.15, 0.08] }}
             transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-            className="absolute bottom-1/4 -right-[15%] w-[350px] h-[350px] bg-red-900/15 rounded-full blur-[120px] pointer-events-none" />
+            className="absolute bottom-1/4 -right-[15%] w-[280px] h-[280px] rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 140px 70px rgba(139,0,0,0.08)", background: "transparent" }} />
         </>
       ) : (
-        <div className="absolute top-1/4 -left-[20%] w-[250px] h-[250px] bg-[#FF0000]/8 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute top-1/4 -left-[20%] w-[200px] h-[200px] rounded-full pointer-events-none"
+          style={{ boxShadow: "0 0 80px 40px rgba(255,0,0,0.04)", background: "transparent" }} />
       )}
 
-      {/* Floating particles — reduced, desktop only */}
-      {!reduceHero && [0,1,2,3,4].map((i) => (
+      {/* Floating particles — desktop non-Safari only */}
+      {!reduceEffects && [0,1,2,3,4].map((i) => (
         <motion.div key={i}
           animate={{ y: [0, -20, 0], opacity: [0, 0.4, 0] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.8 }}
@@ -109,21 +180,7 @@ export function Hero() {
               <motion.h2 initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
                 transition={{ duration:0.5, delay:1.1, ease: ease.out }}
                 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight relative inline-block">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF4444] to-[#FF0000] bg-[length:200%_100%]">
-                  <motion.span
-                    animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="inline-block"
-                    style={{ backgroundImage: "linear-gradient(90deg, #FF0000, #FF4444, #FF0000)", backgroundClip: "text", WebkitBackgroundClip: "text", color: "transparent", backgroundSize: "200% 100%" }}
-                  >
-                    UI/UX Designer
-                  </motion.span>
-                </span>
-                <motion.span
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="inline-block w-1 h-8 sm:h-10 md:h-12 bg-[#FF0000] ml-1 align-middle"
-                />
+                <TypingAnimation />
               </motion.h2>
             </div>
 
@@ -137,11 +194,12 @@ export function Hero() {
                   whileHover={{ scale:1.15, y: -5 }} 
                   whileTap={{ scale:0.9 }}
                   className="group relative p-3 sm:p-3.5 bg-white/5 border border-white/10 rounded-2xl text-white/60 hover:text-white transition-all duration-300"
-                  onMouseEnter={e => { 
-                    const el = e.currentTarget as HTMLElement; 
-                    el.style.backgroundColor=color; 
-                    el.style.boxShadow=`0 0 25px ${shadow}, 0 10px 20px rgba(0,0,0,0.3)`; 
-                    el.style.borderColor=color; 
+                  onMouseEnter={e => {
+                    if (reduceEffects) return;
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.backgroundColor=color;
+                    el.style.boxShadow=`0 0 25px ${shadow}, 0 10px 20px rgba(0,0,0,0.3)`;
+                    el.style.borderColor=color;
                   }}
                   onMouseLeave={e => { 
                     const el = e.currentTarget as HTMLElement; 
@@ -206,9 +264,9 @@ export function Hero() {
               transition={{ duration:0.5, delay:1.7, ease: ease.out }}
               className="grid grid-cols-3 gap-4 sm:gap-6">
               {[
-                { value:"5+", label:"Solo Learning Experience", icon: Sparkles, color: "#FF0000" }, 
+                { value:"5+", label:"Years of Solo Learning Experience", icon: Sparkles, color: "#FF0000" }, 
                 { value:"7", label:"Projects", icon: Zap, color: "#FF4444" }, 
-                { value:"4x", label:"Competition Winner", icon: GithubIcon, color: "#FF0000" }
+                { value:"4x", label:"Competition Winner", icon: Github, color: "#FF0000" }
               ].map(({ value, label, icon: Icon, color }, i) => (
                 <motion.div key={i} 
                   whileHover={{ scale:1.05, y:-8 }} 
@@ -285,13 +343,13 @@ export function Hero() {
             transition={{ duration:0.9, delay:0.4, ease: ease.out }}
             className="order-1 md:order-2 flex justify-center md:justify-end relative group">
 
-            {/* Stellar background with orbital rings */}
+            {/* Stellar background — desktop non-Safari only */}
             <div className="absolute inset-0 rounded-[2.5rem] -z-5">
-              <StellarBackground density="medium" showOrbitalRings={!reduceHero} className="rounded-[2.5rem]" />
+              {!reduceEffects && <StellarBackground density="medium" showOrbitalRings={false} className="rounded-[2.5rem]" />}
             </div>
 
-            {/* Orbital rings — desktop only */}
-            {!reduceHero && [0, 1].map((i) => (
+            {/* Orbital rings — desktop non-Safari only */}
+            {!reduceEffects && [0, 1].map((i) => (
               <motion.div
                 key={`portrait-ring-${i}`}
                 animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
@@ -301,12 +359,10 @@ export function Hero() {
               />
             ))}
 
-            {/* Animated gradient border — reduced on mobile */}
+            {/* Animated gradient border — reduced on Safari/mobile */}
             <div className="absolute -inset-2 sm:-inset-3 rounded-[2.5rem] pointer-events-none">
               <motion.div
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-                }}
+                animate={reduceEffects ? {} : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                 className="absolute inset-0 rounded-[2.5rem]"
                 style={{
@@ -316,16 +372,17 @@ export function Hero() {
                   WebkitMaskComposite: "xor",
                   maskComposite: "exclude",
                   padding: "2px",
-                  opacity: reduceHero ? 0.2 : 0.55,
+                  opacity: reduceEffects ? 0.2 : 0.55,
                 }}
               />
             </div>
 
-            {/* Outer glow — much softer on mobile */}
+            {/* Outer glow — box-shadow instead of blur */}
             <motion.div
-              animate={{ opacity: reduceHero ? [0.04, 0.07, 0.04] : [0.12, 0.2, 0.12] }}
+              animate={{ opacity: reduceEffects ? [0.04, 0.07, 0.04] : [0.12, 0.2, 0.12] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute inset-0 rounded-[2.5rem] bg-[#FF0000]/10 blur-2xl -z-10"
+              className="absolute inset-0 rounded-[2.5rem] -z-10"
+              style={{ boxShadow: "0 0 60px 30px rgba(255,0,0,0.1)", background: "transparent" }}
             />
 
             {/* Image container with enhanced effects */}
@@ -333,7 +390,7 @@ export function Hero() {
               animate={{ y:[0,-12,0] }} 
               transition={{ repeat:Infinity, duration:6, ease:"easeInOut" }}
               whileHover={{ scale: 1.02 }}
-              className={`relative w-full max-w-[220px] sm:max-w-[280px] md:max-w-[360px] aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-black/60 via-black/30 to-black/60 border border-white/20 transition-all duration-700 ${reduceHero ? "shadow-[0_0_20px_rgba(255,0,0,0.1)]" : "shadow-[0_0_60px_rgba(255,0,0,0.2)] group-hover:shadow-[0_0_90px_rgba(255,0,0,0.4)]"}`}>
+              className={`relative w-full max-w-[220px] sm:max-w-[280px] md:max-w-[360px] aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-black/60 via-black/30 to-black/60 border border-white/20 transition-all duration-700 ${reduceEffects ? "shadow-[0_0_20px_rgba(255,0,0,0.08)]" : "shadow-[0_0_50px_rgba(255,0,0,0.15)] group-hover:shadow-[0_0_70px_rgba(255,0,0,0.3)]"}`}>
               
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-transparent z-10 pointer-events-none" />
@@ -351,12 +408,14 @@ export function Hero() {
                 className="w-full h-full object-cover object-top filter contrast-110 brightness-105" 
               />
 
-              {/* Scan line effect */}
-              <motion.div
-                animate={{ y: ["-100%", "200%"] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
-                className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent z-20 pointer-events-none"
-              />
+              {/* Scan line effect — desktop non-Safari only */}
+              {!reduceEffects && (
+                <motion.div
+                  animate={{ y: ["-100%", "200%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+                  className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent z-20 pointer-events-none"
+                />
+              )}
             </motion.div>
 
             {/* Enhanced floating badge */}

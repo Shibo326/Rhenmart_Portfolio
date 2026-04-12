@@ -1,15 +1,18 @@
 import { motion, useInView } from "motion/react";
-import { LinkedinIcon, Mail, Phone, InstagramIcon, FacebookIcon, Heart, GithubIcon } from "lucide-react";
+import { Mail, Phone, Heart } from "lucide-react";
+import { Linkedin, Github, Instagram, Facebook } from "lucide-react";
 import { useRef } from "react";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 const navLinks = ["Home", "Services", "About", "Portfolio", "Contact"];
 const socials = [
-  { href: "https://github.com/Shibo326", icon: GithubIcon, color: "#6e40c9", shadow: "rgba(110,64,201,0.5)" },
-  { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: LinkedinIcon, color: "#0077B5", shadow: "rgba(0,119,181,0.5)" },
-  { href: "https://www.instagram.com/_rhenmart_/", icon: InstagramIcon, color: "#E1306C", shadow: "rgba(225,48,108,0.5)" },
-  { href: "https://www.facebook.com/rhenmart1234", icon: FacebookIcon, color: "#1877F2", shadow: "rgba(24,119,242,0.5)" },
+  { href: "https://github.com/Shibo326", icon: Github, color: "#6e40c9", shadow: "rgba(110,64,201,0.5)" },
+  { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: Linkedin, color: "#0077B5", shadow: "rgba(0,119,181,0.5)" },
+  { href: "https://www.instagram.com/_rhenmart_/", icon: Instagram, color: "#E1306C", shadow: "rgba(225,48,108,0.5)" },
+  { href: "https://www.facebook.com/rhenmart1234", icon: Facebook, color: "#1877F2", shadow: "rgba(24,119,242,0.5)" },
 ];
 
 export function Footer() {
@@ -28,17 +31,18 @@ export function Footer() {
         className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF0000]/40 to-transparent"
       />
 
-      {/* Ambient glow — desktop only */}
-      {!isMobile && (
+      {/* Ambient glow — desktop non-Safari only, box-shadow */}
+      {!reduceEffects && (
         <motion.div
-          animate={{ opacity: [0.03, 0.07, 0.03] }}
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 6, repeat: Infinity }}
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[180px] bg-[#FF0000] rounded-full blur-[90px] pointer-events-none"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[120px] rounded-full pointer-events-none"
+          style={{ boxShadow: "0 0 120px 60px rgba(255,0,0,0.04)", background: "transparent" }}
         />
       )}
 
-      {/* Floating particles — desktop only */}
-      {!isMobile && [0, 1, 2, 3, 4].map((i) => (
+      {/* Floating particles — desktop non-Safari only */}
+      {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
         <motion.div key={i}
           animate={{ y: [0, -14, 0], opacity: [0, 0.2, 0] }}
           transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
@@ -56,7 +60,7 @@ export function Footer() {
           transition={{ duration: 0.5 }}
         >
           <motion.span
-            animate={isMobile ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 18px #FF0000", "0 0 0px #FF0000"] }}
+            animate={reduceEffects ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 18px #FF0000", "0 0 0px #FF0000"] }}
             transition={{ duration: 3, repeat: Infinity }}
             className="text-3xl font-black tracking-tighter text-[#FF0000]"
           >
@@ -91,11 +95,11 @@ export function Footer() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: 0.2 + i * 0.08, duration: 0.4 }}
-              whileHover={isMobile ? {} : { scale: 1.15, rotate: 6 }}
+              whileHover={reduceEffects ? {} : { scale: 1.15, rotate: 6 }}
               whileTap={{ scale: 0.9 }}
               className="p-3 bg-white/5 border border-white/10 rounded-full text-white/60 hover:text-white transition-colors duration-200"
               onMouseEnter={e => {
-                if (isMobile) return;
+                if (reduceEffects) return;
                 const el = e.currentTarget as HTMLElement;
                 el.style.backgroundColor = color;
                 el.style.boxShadow = `0 0 16px ${shadow}`;

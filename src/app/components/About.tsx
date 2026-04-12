@@ -3,8 +3,10 @@ import { Download, Sparkles, Code2, Lightbulb } from "lucide-react";
 import secondProfileImg from "../../Image/new9249-_DSC0331.jpg";
 import { generateResume } from "../utils/generateResume";
 import { StellarBackground } from "./StellarBackground";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 const skills = [
   { label: "UI/UX Design", icon: Sparkles },
@@ -15,12 +17,13 @@ const skills = [
 export function About() {
   return (
     <section id="about" className="py-24 bg-[#050505] relative overflow-hidden">
-      {/* Bg orb — static on mobile */}
-      {!isMobile && (
+      {/* Bg orb — box-shadow instead of blur, skip on Safari/mobile */}
+      {!reduceEffects && (
         <motion.div
-          animate={{ opacity: [0.08, 0.15, 0.08] }}
+          animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#FF0000]/10 rounded-full blur-[100px] pointer-events-none"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{ boxShadow: "0 0 180px 90px rgba(255,0,0,0.06)", background: "transparent" }}
         />
       )}
 
@@ -52,13 +55,13 @@ export function About() {
             transition={{ duration: 0.7 }}
             className="col-span-1 md:col-span-5 relative group"
           >
-            {/* Stellar background — desktop only */}
+            {/* Stellar background — desktop non-Safari only */}
             <div className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] overflow-hidden pointer-events-none -z-5">
-              {!isMobile && <StellarBackground density="low" showOrbitalRings={false} className="rounded-t-[10rem] rounded-b-[2rem]" />}
+              {!reduceEffects && <StellarBackground density="low" showOrbitalRings={false} className="rounded-t-[10rem] rounded-b-[2rem]" />}
             </div>
 
-            {/* Orbital rings — desktop only */}
-            {!isMobile && [0, 1].map((i) => (
+            {/* Orbital rings — desktop non-Safari only */}
+            {!reduceEffects && [0, 1].map((i) => (
               <motion.div
                 key={`about-ring-${i}`}
                 animate={{ rotate: i % 2 === 0 ? -360 : 360 }}
@@ -71,8 +74,8 @@ export function About() {
               />
             ))}
 
-            {/* Gradient border — desktop only */}
-            {!isMobile && (
+            {/* Gradient border — desktop non-Safari only */}
+            {!reduceEffects && (
               <div className="absolute -inset-2 rounded-t-[10rem] rounded-b-[2rem] pointer-events-none">
                 <motion.div
                   animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
@@ -109,8 +112,8 @@ export function About() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent pointer-events-none" />
 
-              {/* Floating skill badges — desktop only */}
-              {!isMobile && skills.map(({ label, icon: Icon }, i) => (
+              {/* Floating skill badges — desktop non-Safari only */}
+              {!reduceEffects && skills.map(({ label, icon: Icon }, i) => (
                 <motion.div
                   key={label}
                   initial={{ opacity: 0, x: 30 }}
@@ -161,9 +164,9 @@ export function About() {
 
             <div className="space-y-4 text-white/70 leading-relaxed text-base md:text-lg">
               {[
-                "Aspiring Junior UI/UX Designer with nearly five years of self-learning experience designing user-friendly web and mobile interfaces. Skilled in conducting user research, creating wireframes and interactive prototypes using Figma, and developing design strategies that support product goals.",
-                "My design process is research-driven and human-centered, combining deep product research, rapid prototyping, and seamless collaboration with development teams. Known for strong communication and working closely with developers to align ideas and deliver effective digital experiences.",
-                "To accelerate innovation, I integrate AI tools into my workflow — helping me iterate faster, explore creative solutions, and deliver smarter, problem-solving designs. Whether refining UX flows, creating interactive prototypes, or optimizing interfaces for accessibility and performance, I aim to create digital experiences that are both beautiful and effective.",
+                "Junior UI/UX Designer with 5 years of self-learning experience crafting user-friendly web and mobile interfaces. I specialize in user research, interactive prototyping in Figma, and design strategies that drive product success.",
+                "My process is research-driven and human-centered — combining rapid prototyping with seamless developer collaboration. I integrate AI tools to accelerate innovation, iterate faster, and deliver smarter design solutions.",
+                "From UX flows to accessible interfaces, I create digital experiences that are both beautiful and effective.",
               ].map((text, i) => (
                 <motion.p
                   key={i}
