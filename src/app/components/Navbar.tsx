@@ -2,8 +2,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 const navLinks = [
   { name: "Home", href: "#home" },
@@ -53,15 +55,15 @@ export function Navbar() {
           ? "bg-[#050505]/90 border-b border-white/8"
           : "bg-transparent border-b border-transparent"
       }`}
-      // No backdrop-blur on mobile — too expensive
-      style={scrolled && !isMobile ? { backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" } : {}}
+      // No backdrop-blur on mobile/Safari — too expensive
+      style={scrolled && !reduceEffects ? { backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" } : {}}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
 
         {/* Logo */}
         <Link to="/" className="relative group">
           <motion.span
-            animate={isMobile ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 12px #FF0000", "0 0 0px #FF0000"] }}
+            animate={reduceEffects ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 12px #FF0000", "0 0 0px #FF0000"] }}
             transition={{ duration: 4, repeat: Infinity }}
             className="text-xl sm:text-2xl font-black tracking-tighter text-[#FF0000]"
           >

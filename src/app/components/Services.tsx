@@ -1,8 +1,10 @@
 import { motion, useMotionValue, useTransform, useSpring } from "motion/react";
 import { Smartphone, Monitor, Search, Handshake, Sparkles, Zap } from "lucide-react";
 import { useRef, useState, memo } from "react";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 const services = [
   { title: "UI Design", description: "Crafting visually compelling interfaces with strong layout systems, design tokens, and micro-animation details.", icon: Monitor, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]", number: "01" },
@@ -23,7 +25,7 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
   const glowY = useTransform(mouseY, [-100, 100], [0, 100]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMobile || !hovered) return;
+    if (reduceEffects || !hovered) return;
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
     mouseX.set(e.clientX - rect.left - rect.width / 2);
@@ -40,9 +42,9 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.55, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      style={isMobile ? {} : { rotateX, rotateY, transformStyle: "preserve-3d", willChange: hovered ? "transform" : "auto" }}
+      style={reduceEffects ? {} : { rotateX, rotateY, transformStyle: "preserve-3d", willChange: hovered ? "transform" : "auto" }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => !isMobile && setHovered(true)}
+      onMouseEnter={() => !reduceEffects && setHovered(true)}
       onMouseLeave={handleMouseLeave}
       className={`relative p-5 sm:p-10 rounded-3xl bg-gradient-to-br from-[#0d0d0d] to-[#080808] border border-white/10 overflow-hidden group cursor-default ${service.span ? "md:col-span-8 md:col-start-3" : "md:col-span-4"}`}
     >
@@ -53,8 +55,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
         className={`absolute inset-0 bg-gradient-to-br ${service.gradient} blur-3xl pointer-events-none`}
       />
 
-      {/* Cursor spotlight — desktop only */}
-      {!isMobile && (
+      {/* Cursor spotlight — desktop non-Safari only */}
+      {!reduceEffects && (
         <motion.div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-3xl"
           style={{ background: useTransform([glowX, glowY], ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,0,0,0.18) 0%, transparent 55%)`) }}
@@ -69,8 +71,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
         style={{ boxShadow: `inset 0 0 0 1.5px ${service.color}50, 0 0 35px ${service.color}25` }}
       />
 
-      {/* Animated gradient border — desktop only */}
-      {!isMobile && (
+      {/* Animated gradient border — desktop non-Safari only */}
+      {!reduceEffects && (
         <motion.div animate={{ opacity: hovered ? 1 : 0 }} transition={{ duration: 0.3 }}
           className="absolute inset-0 rounded-3xl pointer-events-none">
           <motion.div
@@ -88,8 +90,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
         </motion.div>
       )}
 
-      {/* Shimmer sweep — desktop only */}
-      {!isMobile && (
+      {/* Shimmer sweep — desktop non-Safari only */}
+      {!reduceEffects && (
         <motion.div
           initial={{ x: "-100%", opacity: 0 }}
           animate={{ x: hovered ? "200%" : "-100%", opacity: hovered ? 1 : 0 }}
@@ -116,8 +118,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
             className="absolute inset-0 rounded-full"
             style={{ background: `radial-gradient(circle, ${service.color}35 0%, transparent 70%)` }}
           />
-          {/* Inner pulse ring — desktop only */}
-          {!isMobile && (
+          {/* Inner pulse ring — desktop non-Safari only */}
+          {!reduceEffects && (
             <motion.div
               animate={{ scale: [1, 1.35, 1], opacity: [0.3, 0, 0.3] }}
               transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4 + 0.4 }}
@@ -127,10 +129,10 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
           )}
 
           <motion.div
-            whileHover={isMobile ? {} : { rotate: [0, -12, 12, -8, 8, 0], scale: 1.2 }}
+            whileHover={reduceEffects ? {} : { rotate: [0, -12, 12, -8, 8, 0], scale: 1.2 }}
             transition={{ duration: 0.5, type: "spring", stiffness: 280 }}
             className={`relative p-3 sm:p-5 bg-gradient-to-br ${service.gradient} rounded-2xl border border-white/20 shadow-lg`}
-            style={{ boxShadow: `0 8px 30px ${service.color}35`, transform: isMobile ? "none" : "translateZ(25px)" }}
+            style={{ boxShadow: `0 8px 30px ${service.color}35`, transform: reduceEffects ? "none" : "translateZ(25px)" }}
           >
             <Icon size={isMobile ? 24 : 34} className="text-white" />
             {/* Icon inner glow on hover */}
@@ -141,8 +143,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
             />
           </motion.div>
 
-          {/* Sparkle effects on hover — desktop only */}
-          {!isMobile && hovered && (
+          {/* Sparkle effects on hover — desktop non-Safari only */}
+          {!reduceEffects && hovered && (
             <>
               <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: [0, 1, 0], rotate: 180 }}
                 transition={{ duration: 0.5 }} className="absolute -top-2 -right-2">
@@ -156,7 +158,7 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
           )}
         </div>
 
-        <div style={isMobile ? {} : { transform: "translateZ(18px)" }} className="space-y-2 sm:space-y-3">
+        <div style={reduceEffects ? {} : { transform: "translateZ(18px)" }} className="space-y-2 sm:space-y-3">
           <motion.h3
             animate={{ color: hovered ? service.color : "#ffffff" }}
             transition={{ duration: 0.2 }}
@@ -200,8 +202,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
           />
         </div>
 
-        {/* Hover explore indicator — desktop only */}
-        {!isMobile && (
+        {/* Hover explore indicator — desktop non-Safari only */}
+        {!reduceEffects && (
           <motion.div
             animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 8 }}
             className="flex items-center gap-2 text-xs text-white/40 font-semibold uppercase tracking-wider"
@@ -218,8 +220,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
 export function Services() {
   return (
     <section id="services" className="py-28 bg-[#080808] relative overflow-hidden">
-      {/* Animated grid — desktop only */}
-      {!isMobile ? (
+      {/* Animated grid — desktop non-Safari only */}
+      {!reduceEffects ? (
         <motion.div
           animate={{ backgroundPosition: ["0px 0px", "60px 60px"] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -231,8 +233,8 @@ export function Services() {
           style={{ backgroundImage: "linear-gradient(rgba(255,0,0,0.8) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,0.8) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
       )}
 
-      {/* Decorative rotating rings — desktop only */}
-      {!isMobile && (
+      {/* Decorative rotating rings — desktop non-Safari only */}
+      {!reduceEffects && (
         <>
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
             className="absolute -top-64 -right-64 w-[600px] h-[600px] border border-white/[0.04] rounded-full pointer-events-none" />
@@ -241,24 +243,26 @@ export function Services() {
         </>
       )}
 
-      {/* Floating gradient orbs — desktop only */}
-      {!isMobile && (
+      {/* Floating gradient orbs — desktop non-Safari only, box-shadow instead of blur */}
+      {!reduceEffects && (
         <>
           <motion.div
-            animate={{ x: [0, 80, 0], y: [0, -40, 0], opacity: [0.08, 0.16, 0.08] }}
+            animate={{ x: [0, 80, 0], y: [0, -40, 0], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-1/4 right-1/4 w-80 h-80 bg-[#FF0000]/20 rounded-full blur-[110px] pointer-events-none"
+            className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 160px 80px rgba(255,0,0,0.07)", background: "transparent" }}
           />
           <motion.div
-            animate={{ x: [0, -60, 0], y: [0, 50, 0], opacity: [0.06, 0.12, 0.06] }}
+            animate={{ x: [0, -60, 0], y: [0, 50, 0], opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-[#FF4444]/12 rounded-full blur-[130px] pointer-events-none"
+            className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 180px 90px rgba(255,68,68,0.05)", background: "transparent" }}
           />
         </>
       )}
 
-      {/* Floating dots — desktop only */}
-      {!isMobile && [0, 1, 2, 3, 4].map((i) => (
+      {/* Floating dots — desktop non-Safari only */}
+      {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
         <motion.div key={i}
           animate={{ y: [0, -25, 0], opacity: [0, 0.35, 0], scale: [0.5, 1.1, 0.5] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.7 }}
@@ -316,7 +320,7 @@ export function Services() {
             className="relative w-16 h-[3px] mx-auto rounded-full overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FF0000] to-transparent" />
-            {!isMobile && (
+            {!reduceEffects && (
               <motion.div
                 animate={{ x: ["-100%", "200%"] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}

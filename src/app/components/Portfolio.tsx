@@ -8,8 +8,10 @@ import tagisan2 from "../../Image/Tagisan ng talino second placer.jpg";
 import uxphImg from "../../Image/UXPH SEMINAR.jpeg";
 import beyondUiImg from "../../Image/Beyond ui.jpg";
 import exploringFigmaImg from "../../Image/Exploring The basics of figma.jpg";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 type Category = "All" | "Competition" | "Workshop" | "Seminar" | "Case Studies";
 
@@ -59,7 +61,7 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
   const cfg = categoryConfig[item.category];
 
   const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMobile) return;
+    if (reduceEffects) return;
     const r = ref.current?.getBoundingClientRect(); if (!r) return;
     mx.set(e.clientX - r.left - r.width / 2);
     my.set(e.clientY - r.top - r.height / 2);
@@ -67,8 +69,8 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
 
   const onLeave = useCallback(() => { mx.set(0); my.set(0); setHov(false); }, [mx, my]);
 
-  // Mobile: Use scroll-triggered animation
-  if (isMobile) {
+  // Mobile/Safari: Use scroll-triggered animation (no 3D tilt)
+  if (reduceEffects) {
     return (
       <motion.div
         initial="offscreen"
@@ -110,7 +112,7 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-      style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d", willChange: hov ? "transform" : "auto" }}
+      style={reduceEffects ? {} : { rotateX: rx, rotateY: ry, transformStyle: "preserve-3d", willChange: hov ? "transform" : "auto" }}
       onMouseMove={onMove}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={onLeave}
@@ -173,13 +175,15 @@ export function Portfolio() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{ backgroundImage: "linear-gradient(rgba(255,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      {/* Animated orbs — desktop only */}
-      {!isMobile && (
+      {/* Animated orbs — desktop non-Safari only, box-shadow */}
+      {!reduceEffects && (
         <>
-          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.04, 0.09, 0.04] }} transition={{ duration: 9, repeat: Infinity }}
-            className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#FF0000] rounded-full blur-[150px] pointer-events-none" />
-          <motion.div animate={{ scale: [1.1, 1, 1.1], opacity: [0.03, 0.07, 0.03] }} transition={{ duration: 7, repeat: Infinity, delay: 2 }}
-            className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-[#FF0000] rounded-full blur-[130px] pointer-events-none" />
+          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 9, repeat: Infinity }}
+            className="absolute -top-40 -left-40 w-[300px] h-[300px] rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.05)", background: "transparent" }} />
+          <motion.div animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 7, repeat: Infinity, delay: 2 }}
+            className="absolute -bottom-40 -right-40 w-[250px] h-[250px] rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 180px 90px rgba(255,0,0,0.04)", background: "transparent" }} />
         </>
       )}
 
@@ -298,7 +302,6 @@ export function Portfolio() {
             })}
           </div>
           
-          {/* Scroll hint - only show on mobile */}
           {isMobile && (
             <motion.div
               initial={{ opacity: 1 }}
@@ -315,7 +318,7 @@ export function Portfolio() {
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          style={isMobile ? {} : { perspective: "1000px" }}>
+          style={reduceEffects ? {} : { perspective: "1000px" }}>
           {displayedItems.map((item, i) => (
             <PortfolioCard key={`${activeTab}-${item.id}`} item={item} index={i} onClick={() => setSelectedId(item.id)} />
           ))}

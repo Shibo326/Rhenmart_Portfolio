@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { detectDeviceCapability } from "../utils/performance";
+
+const { isMobile, isSafari, tier } = detectDeviceCapability();
+const skipCanvas = isMobile || isSafari || tier === "low";
 
 interface Particle { x: number; y: number; vx: number; vy: number; size: number; opacity: number; }
 
@@ -7,16 +10,14 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (skipCanvas) return; // skip on Safari, mobile, low-end
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!ctx) return;
 
-    const isMobile = window.innerWidth < 768;
-    const isLowEnd = navigator.hardwareConcurrency <= 4;
-    if (isMobile || isLowEnd) return; // skip entirely on mobile/low-end
-
-    const count = Math.floor(density * 0.5);
+    const count = Math.floor(density * 0.4); // reduced from 0.5
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     resize();
     window.addEventListener("resize", resize, { passive: true });
@@ -24,17 +25,17 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
     const particles: Particle[] = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.18,
-      vy: (Math.random() - 0.5) * 0.18,
-      size: 0.7 + Math.random() * 1.1,
-      opacity: 0.07 + Math.random() * 0.2,
+      vx: (Math.random() - 0.5) * 0.15, // slower
+      vy: (Math.random() - 0.5) * 0.15,
+      size: 0.6 + Math.random() * 0.9,
+      opacity: 0.05 + Math.random() * 0.15,
     }));
 
-    const connDist = 90;
+    const connDist = 80; // reduced from 90
     const connDistSq = connDist * connDist;
     let frame: number;
     let lastTime = 0;
-    const interval = 1000 / 35; // 35fps cap
+    const interval = 1000 / 30; // 30fps cap — was 35
 
     const draw = (ts: number) => {
       frame = requestAnimationFrame(draw);
@@ -49,7 +50,7 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
       }
 
-      ctx.lineWidth = 0.4;
+      ctx.lineWidth = 0.3;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -59,7 +60,7 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(${color},${(1 - Math.sqrt(d) / connDist) * 0.055})`;
+            ctx.strokeStyle = `rgba(${color},${(1 - Math.sqrt(d) / connDist) * 0.04})`;
             ctx.stroke();
           }
         }
@@ -77,28 +78,6 @@ export function ParticleField({ density = 50, color = "255,0,0" }: { density?: n
     return () => { cancelAnimationFrame(frame); window.removeEventListener("resize", resize); };
   }, [density, color]);
 
+  if (skipCanvas) return null;
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: -1, contain: "strict" }} />;
-}
-
-export function FloatingOrbs() {
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  if (isMobile) return null;
-
-  return (
-    <>
-      {[0, 1, 2].map((i) => (
-        <motion.div key={i}
-          animate={{ x: [0, i % 2 === 0 ? 35 : -35, 0], y: [0, i % 2 === 0 ? -25 : 25, 0], opacity: [0.03, 0.06, 0.03] }}
-          transition={{ duration: 12 + i * 3, repeat: Infinity, ease: "easeInOut", delay: i * 2 }}
-          className="fixed rounded-full pointer-events-none"
-          style={{
-            width: `${260 + i * 40}px`, height: `${260 + i * 40}px`,
-            background: `radial-gradient(circle, rgba(255,${i * 12},0,0.3) 0%, transparent 70%)`,
-            filter: "blur(90px)",
-            left: `${i * 30}%`, top: `${i * 20}%`, zIndex: -2,
-          }}
-        />
-      ))}
-    </>
-  );
 }

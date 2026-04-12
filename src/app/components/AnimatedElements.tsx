@@ -291,7 +291,7 @@ export function FadeInItem({
 export function GlowOrb({ 
   size = 400,
   color = "255,0,0",
-  blur = 120,
+  blur: _blur = 120, // kept for API compat but not used — filter:blur is Safari-unsafe
   opacity = 0.1,
   className = ""
 }: GlowOrbProps) {
@@ -310,8 +310,9 @@ export function GlowOrb({
       style={{
         width: size,
         height: size,
-        background: `radial-gradient(circle, rgba(${color},${opacity}) 0%, transparent 70%)`,
-        filter: `blur(${blur}px)`
+        // box-shadow instead of filter:blur — Safari/macOS safe
+        boxShadow: `0 0 ${size / 2}px ${size / 4}px rgba(${color},${opacity})`,
+        background: "transparent",
       }}
     />
   );

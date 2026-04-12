@@ -1,8 +1,10 @@
 import { motion, useInView, useMotionValue, useTransform, animate } from "motion/react";
 import { useEffect, useRef, useState, memo } from "react";
 import { Brain, Wrench, Bot, Sparkles } from "lucide-react";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 function Counter({ target, isInView }: { target: number; isInView: boolean }) {
   const count = useMotionValue(0);
@@ -44,12 +46,12 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
       initial={{ opacity: 0, y: 30, scale: 0.88 }}
       animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration: 0.6, delay, ease: [0, 0, 0.2, 1] }}
-      onHoverStart={() => !isMobile && setHovered(true)}
+      onHoverStart={() => !reduceEffects && setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       className="flex flex-col items-center gap-4 group cursor-default"
     >
       <motion.div
-        whileHover={isMobile ? {} : { scale: 1.1 }}
+        whileHover={reduceEffects ? {} : { scale: 1.1 }}
         transition={{ type: "spring", stiffness: 280, damping: 22 }}
         className="relative flex items-center justify-center"
         style={{ width: SIZE, height: SIZE }}
@@ -70,8 +72,8 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
               <stop offset="50%" stopColor="#FF0000" />
               <stop offset="100%" stopColor="#CC0000" />
             </linearGradient>
-            {/* Glow filter — desktop only */}
-            {!isMobile && (
+            {/* Glow filter — desktop non-Safari only */}
+            {!reduceEffects && (
               <filter id={`glow-${label.replace(/\s/g, "")}`} x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="2.5" result="blur" />
                 <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
@@ -83,8 +85,8 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
           <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={STROKE} />
           <circle cx={CENTER} cy={CENTER} r={RADIUS - STROKE - 2} fill="none" stroke="rgba(255,0,0,0.04)" strokeWidth={1} />
 
-          {/* Glow arc — desktop only */}
-          {!isMobile && (
+          {/* Glow arc — desktop non-Safari only */}
+          {!reduceEffects && (
             <motion.circle
               cx={CENTER} cy={CENTER} r={RADIUS}
               fill="none" stroke="rgba(255,0,0,0.35)" strokeWidth={STROKE + 4}
@@ -116,7 +118,7 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: [0, 1.4, 1] }}
               transition={{ delay: delay + 1.5, duration: 0.4 }}
-              filter={!isMobile ? `url(#glow-${label.replace(/\s/g, "")})` : undefined}
+              filter={!reduceEffects ? `url(#glow-${label.replace(/\s/g, "")})` : undefined}
             />
           )}
         </svg>
@@ -163,7 +165,7 @@ const ToolPill = memo(function ToolPill({ name, index }: { name: string; index: 
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.07, duration: 0.35 }}
-      whileHover={isMobile ? {} : { scale: 1.08, y: -3 }}
+      whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
       className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8 transition-all duration-200 cursor-default"
     >
       {name}
@@ -187,15 +189,18 @@ export function Skills() {
 
   return (
     <section ref={sectionRef} className="py-24 bg-[#050505] relative overflow-hidden border-t border-white/5">
-      {/* Bg orb */}
-      <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.04, 0.1, 0.04] }}
-        transition={{ duration: 8, repeat: Infinity }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF0000]/10 rounded-full blur-[130px] pointer-events-none"
-      />
+      {/* Bg orb — box-shadow instead of blur, skip on Safari */}
+      {!reduceEffects && (
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.05)", background: "transparent" }}
+        />
+      )}
 
-      {/* Floating particles — desktop only */}
-      {!isMobile && [0, 1, 2, 3, 4, 5].map((i) => (
+      {/* Floating particles — desktop non-Safari only */}
+      {!reduceEffects && [0, 1, 2, 3, 4, 5].map((i) => (
         <motion.div key={i}
           animate={{ y: [0, -20, 0], opacity: [0, 0.25, 0] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.6 }}
@@ -229,8 +234,8 @@ export function Skills() {
             viewport={{ once: true }} transition={{ delay: 0.7 }}
             className="mt-10 max-w-2xl mx-auto text-center">
             <div className="relative px-6 py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl">
-              {/* Animated accent lines — desktop only */}
-              {!isMobile && (
+              {/* Animated accent lines — desktop non-Safari only */}
+              {!reduceEffects && (
                 <>
                   <motion.div
                     animate={{ height: ["0%", "100%", "0%"] }}
@@ -262,7 +267,7 @@ export function Skills() {
             <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-5">
-                <motion.div whileHover={isMobile ? {} : { rotate: 18 }}
+                <motion.div whileHover={reduceEffects ? {} : { rotate: 18 }}
                   className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
                   <Wrench size={15} className="text-[#FF0000]" />
                 </motion.div>
@@ -281,8 +286,8 @@ export function Skills() {
           <motion.div initial={{ opacity: 0, x: 25 }} whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.1 }}
             className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
-            {/* Shimmer — desktop only */}
-            {!isMobile && (
+            {/* Shimmer — desktop non-Safari only */}
+            {!reduceEffects && (
               <motion.div
                 animate={{ x: ["-100%", "200%"] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
@@ -293,7 +298,7 @@ export function Skills() {
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-5">
                 <motion.div
-                  animate={isMobile ? {} : { rotate: [0, 5, -5, 0] }}
+                  animate={reduceEffects ? {} : { rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
                   className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
                   <Bot size={15} className="text-[#FF0000]" />
@@ -315,7 +320,7 @@ export function Skills() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.09 }}
-                    whileHover={isMobile ? {} : { scale: 1.08, y: -3 }}
+                    whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
                     className="px-4 py-2 bg-[#FF0000]/8 border border-[#FF0000]/20 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/50 hover:text-white hover:bg-[#FF0000]/15 transition-all duration-200 cursor-default flex items-center gap-1.5"
                   >
                     <Sparkles size={9} className="text-[#FF0000]" />

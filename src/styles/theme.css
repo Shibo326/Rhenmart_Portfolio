@@ -20,17 +20,12 @@ section {
 }
 
 /* Scrollbar hide utility */
-.scrollbar-none {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.scrollbar-none::-webkit-scrollbar { display: none; }
-
-/* Scrollbar hide utility (alternative name) */
+.scrollbar-none,
 .scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+.scrollbar-none::-webkit-scrollbar,
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
 /* Prevent CLS on images */
@@ -39,29 +34,38 @@ img { content-visibility: auto; }
 /* Canvas: crisp rendering */
 canvas { image-rendering: pixelated; }
 
-/* Font swap to prevent FOIT */
-@font-face { font-display: swap; }
-
-/* ── Mobile: aggressive GPU memory protection ── */
-@media (max-width: 767px) {
-  /* Reset will-change to free GPU memory */
-  * {
-    will-change: auto !important;
-    backface-visibility: visible !important;
-  }
-
-  /* Disable all backdrop-filter — single biggest perf win on mobile */
+/* ── Safari / WebKit: aggressive compositing protection ── */
+/* Safari creates a new compositing layer for every backdrop-filter,
+   blur filter, and will-change — this kills performance on macOS/iOS */
+@supports (-webkit-appearance: none) {
+  /* Disable backdrop-blur on Safari — single biggest perf win */
   *[class*="backdrop-blur"] {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Reduce large blur radii that cause compositing layers */
+  /* Cap large blur radii that create expensive layers */
+  .safari-no-blur {
+    filter: none !important;
+  }
+}
+
+/* ── Mobile: aggressive GPU memory protection ── */
+@media (max-width: 767px) {
+  * {
+    will-change: auto !important;
+    backface-visibility: visible !important;
+  }
+
+  *[class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   *[class*="blur-["] {
     filter: none !important;
   }
 
-  /* Prevent transform stacking on mobile */
   .motion-layer {
     will-change: auto !important;
     transform: none !important;
@@ -81,4 +85,11 @@ canvas { image-rendering: pixelated; }
 a, button {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+/* ── Glow orb optimization: use box-shadow instead of filter:blur on Safari ── */
+.glow-orb-safari {
+  box-shadow: 0 0 80px 40px rgba(255, 0, 0, 0.08);
+  background: transparent !important;
+  filter: none !important;
 }

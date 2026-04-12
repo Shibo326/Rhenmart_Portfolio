@@ -2,8 +2,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { Send, Mail, Phone, MapPin, CheckCircle, AlertCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 // ─── EmailJS Configuration ─────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID = "service_6r1ytvj";
@@ -59,15 +61,16 @@ export function Contact() {
 
   return (
     <section id="contact" className="py-24 bg-[#050505] relative overflow-hidden">
-      {/* Bg orb */}
+      {/* Bg orb — box-shadow instead of blur */}
       <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.04, 0.09, 0.04] }}
+        animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 8, repeat: Infinity }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF0000] rounded-full blur-[110px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.05)", background: "transparent" }}
       />
 
-      {/* Floating dots — desktop only */}
-      {!isMobile && [0, 1, 2, 3, 4].map((i) => (
+      {/* Floating dots — desktop non-Safari only */}
+      {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
         <motion.div key={i}
           animate={{ y: [0, -18, 0], opacity: [0, 0.35, 0] }}
           transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}

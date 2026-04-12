@@ -1,14 +1,16 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { detectDeviceCapability } from "../utils/performance";
 
-const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const { isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = isMobile || isSafari;
 
 // Canvas — desktop only
 function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (isMobile) return; // skip entirely on mobile
+    if (isMobile || isSafari) return; // skip on mobile and Safari
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -48,7 +50,7 @@ function ParticleCanvas() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  if (isMobile) return null;
+  if (isMobile || isSafari) return null;
   return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none opacity-40" />;
 }
 
@@ -100,12 +102,13 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
         >
           <ParticleCanvas />
 
-          {/* Static bg orb — no animation on mobile */}
-          {!isMobile && (
+          {/* Static bg orb — box-shadow instead of blur */}
+          {!reduceEffects && (
             <motion.div
               animate={{ opacity: [0.1, 0.2, 0.1] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute w-[500px] h-[500px] bg-[#FF0000]/12 rounded-full blur-[140px] pointer-events-none"
+              className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
+              style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.08)", background: "transparent" }}
             />
           )}
 
@@ -114,7 +117,7 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
             {/* Single rotating ring — mobile optimized */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: isMobile ? 8 : 6, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: reduceEffects ? 8 : 6, repeat: Infinity, ease: "linear" }}
               className="absolute w-36 h-36 rounded-full pointer-events-none"
               style={{
                 background: "conic-gradient(from 0deg, #FF0000 0%, transparent 40%, #FF0000 70%, transparent 100%)",
@@ -124,8 +127,8 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
               }}
             />
 
-            {/* Inner ring — desktop only */}
-            {!isMobile && (
+            {/* Inner ring — desktop non-Safari only */}
+            {!reduceEffects && (
               <motion.div
                 animate={{ rotate: -360 }}
                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}

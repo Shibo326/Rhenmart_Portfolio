@@ -13,8 +13,8 @@ import { ChevronUp } from "lucide-react";
 import { getAnimationConfig, detectDeviceCapability } from "../utils/performance";
 
 const config = getAnimationConfig();
-const { tier, isMobile } = detectDeviceCapability();
-const reduceEffects = tier === "low";
+const { tier, isMobile, isSafari } = detectDeviceCapability();
+const reduceEffects = tier === "low" || isSafari;
 
 // ── Lightweight canvas background ──────────────────────────────────────────
 const LiveBackground = memo(function LiveBackground() {
@@ -135,7 +135,7 @@ const RevealSection = memo(function RevealSection({ children }: { children: Reac
   );
 });
 
-// ── Scroll orbs — desktop only, simplified ─────────────────────────────────
+// ── Scroll orbs — desktop non-Safari only ──────────────────────────────────
 const ScrollOrbs = memo(function ScrollOrbs() {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 4000], [0, -300]);
@@ -143,15 +143,16 @@ const ScrollOrbs = memo(function ScrollOrbs() {
 
   if (reduceEffects) return null;
 
+  // box-shadow replaces filter:blur — much cheaper on Safari/macOS
   return (
     <div className="fixed inset-0 z-[-2] pointer-events-none overflow-hidden">
       <motion.div
-        style={{ y: y1, willChange: "transform" }}
-        className="absolute -top-48 -left-48 w-[500px] h-[500px] bg-[#FF0000] rounded-full blur-[180px] opacity-[0.08]"
+        style={{ y: y1, willChange: "transform", boxShadow: "0 0 200px 100px rgba(255,0,0,0.08)", background: "transparent" }}
+        className="absolute -top-48 -left-48 w-[300px] h-[300px] rounded-full"
       />
       <motion.div
-        style={{ y: y2, willChange: "transform" }}
-        className="absolute -bottom-48 -right-48 w-[450px] h-[450px] bg-[#FF0000] rounded-full blur-[160px] opacity-[0.05]"
+        style={{ y: y2, willChange: "transform", boxShadow: "0 0 180px 90px rgba(255,0,0,0.05)", background: "transparent" }}
+        className="absolute -bottom-48 -right-48 w-[300px] h-[300px] rounded-full"
       />
     </div>
   );

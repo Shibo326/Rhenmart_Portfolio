@@ -1,240 +1,22 @@
-# 🌌 Stellar Portfolio Email Template
+# EmailJS Template Setup Guide
 
-This template matches your portfolio's dark galaxy theme with red accents!
+## Quick Setup Steps
 
----
-
-## Quick Setup in EmailJS
-
-### 1. Template Settings
-
-**Template Name:**
-```
-Stellar Portfolio Contact
-```
-
-**Subject:**
-```
-🚀 New Portfolio Contact: {{subject}}
-```
-
-**From Name:**
-```
-{{from_name}}
-```
-
-**From Email:**
-```
-{{from_email}}
-```
-
-**To Email:**
-```
-Rhenmart978@gmail.com
-```
-
-**Reply To:**
-```
-{{from_email}}
-```
+1. Go to [EmailJS Dashboard](https://dashboard.emailjs.com/admin)
+2. Click **Email Templates** **Create New Template**
+3. Copy the template below and paste it into the EmailJS editor
+4. Save and copy your Template ID
 
 ---
 
-### 2. Message Content (HTML Mode)
+## Template Configuration
 
-Switch to HTML editor and paste this complete template:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    @media only screen and (max-width: 600px) {
-      .main-table { width: 100% !important; }
-      .content-padding { padding: 24px 16px !important; }
-      .header-padding { padding: 32px 20px !important; }
-      .title { font-size: 24px !important; }
-      .subtitle { font-size: 13px !important; }
-      .button { padding: 14px 28px !important; font-size: 13px !important; }
-      .info-card { padding: 20px 16px !important; }
-      .label { font-size: 9px !important; }
-      .value { font-size: 16px !important; }
-      .message-box { padding: 20px 16px !important; }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #050505;">
-  
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #050505; padding: 20px 10px;">
-    <tr>
-      <td align="center">
-        
-        <!-- Main Card -->
-        <table class="main-table" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: linear-gradient(135deg, #0d0d0d 0%, #050505 100%); border: 1px solid rgba(255, 0, 0, 0.3); border-radius: 20px; overflow: hidden; box-shadow: 0 0 60px rgba(255, 0, 0, 0.2), 0 20px 40px rgba(0, 0, 0, 0.5);">
-          
-          <!-- Animated Header -->
-          <tr>
-            <td class="header-padding" style="background: linear-gradient(135deg, #FF0000 0%, #cc0000 100%); padding: 36px 24px; text-align: center; position: relative; overflow: hidden;">
-              
-              <!-- Floating particles effect (static representation) -->
-              <div style="position: absolute; top: 10px; left: 20px; width: 4px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
-              <div style="position: absolute; top: 30px; right: 40px; width: 3px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
-              <div style="position: absolute; bottom: 20px; left: 60px; width: 2px; height: 2px; background: rgba(255,255,255,0.5); border-radius: 50%;"></div>
-              
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center">
-                    <!-- Badge -->
-                    <table cellpadding="0" cellspacing="0" style="margin: 0 auto 14px auto;">
-                      <tr>
-                        <td style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; padding: 6px 14px;">
-                          <table cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td style="padding-right: 6px;">
-                                <span style="display: inline-block; width: 7px; height: 7px; background: #fff; border-radius: 50%; box-shadow: 0 0 8px rgba(255,255,255,0.8);"></span>
-                              </td>
-                              <td>
-                                <span style="color: #fff; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">New Message</span>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                    </table>
-                    
-                    <!-- Title -->
-                    <h1 class="title" style="margin: 0; font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; text-shadow: 0 2px 20px rgba(0,0,0,0.3); line-height: 1.2;">
-                      ✨ Portfolio Contact
-                    </h1>
-                    <p class="subtitle" style="margin: 10px 0 0 0; font-size: 13px; color: rgba(255, 255, 255, 0.85); font-weight: 500; line-height: 1.4;">
-                      Someone wants to connect with you!
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Content Section -->
-          <tr>
-            <td class="content-padding" style="padding: 32px 24px; position: relative;">
-              
-              <!-- Sender Info Card -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; margin-bottom: 20px; overflow: hidden;">
-                <tr>
-                  <td class="info-card" style="padding: 20px; position: relative;">
-                    
-                    <!-- Red accent line -->
-                    <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #FF0000, #FF4444); border-radius: 0 2px 2px 0;"></div>
-                    
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                      <!-- From Name -->
-                      <tr>
-                        <td style="padding-bottom: 14px; padding-left: 8px;">
-                          <span class="label" style="display: block; font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px;">From</span>
-                          <span class="value" style="display: block; font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; word-break: break-word;">{{from_name}}</span>
-                        </td>
-                      </tr>
-                      
-                      <!-- Email -->
-                      <tr>
-                        <td style="padding-bottom: 14px; padding-left: 8px;">
-                          <span class="label" style="display: block; font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px;">Email</span>
-                          <a href="mailto:{{from_email}}" style="display: inline-block; font-size: 14px; color: #FF0000; text-decoration: none; font-weight: 600; padding: 6px 12px; background: rgba(255, 0, 0, 0.1); border-radius: 6px; border: 1px solid rgba(255, 0, 0, 0.2); word-break: break-all;">
-                            {{from_email}}
-                          </a>
-                        </td>
-                      </tr>
-                      
-                      <!-- Subject -->
-                      <tr>
-                        <td style="padding-left: 8px;">
-                          <span class="label" style="display: block; font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 5px;">Subject</span>
-                          <span class="value" style="display: block; font-size: 15px; color: rgba(255, 255, 255, 0.9); font-weight: 600; line-height: 1.4; word-break: break-word;">{{subject}}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Message Content -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <span class="label" style="display: block; font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px;">Message</span>
-                    
-                    <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255, 255, 255, 0.03); border-left: 3px solid #FF0000; border-radius: 10px; overflow: hidden;">
-                      <tr>
-                        <td class="message-box" style="padding: 20px; position: relative;">
-                          <!-- Subtle glow effect -->
-                          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, #FF0000, transparent);"></div>
-                          
-                          <p style="margin: 0; font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.85); white-space: pre-wrap; font-weight: 400; word-break: break-word;">{{message}}</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- CTA Button -->
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="padding-top: 8px;">
-                    <a href="mailto:{{from_email}}" class="button" style="display: inline-block; background: linear-gradient(135deg, #FF0000 0%, #cc0000 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 50px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4), 0 0 40px rgba(255, 0, 0, 0.2); letter-spacing: 0.3px; text-transform: uppercase;">
-                      Reply to {{from_name}} →
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background: rgba(255, 255, 255, 0.02); padding: 20px 24px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-              <p style="margin: 0 0 6px 0; font-size: 12px; color: rgba(255, 255, 255, 0.4); font-weight: 500; line-height: 1.4;">
-                Sent from your stellar portfolio
-              </p>
-              <p style="margin: 0; font-size: 10px; color: rgba(255, 255, 255, 0.25); font-weight: 400; line-height: 1.4;">
-                Powered by EmailJS • Rhenmart Dela Cruz
-              </p>
-            </td>
-          </tr>
-          
-        </table>
-        
-      </td>
-    </tr>
-  </table>
-  
-</body>
-</html>
+### Template Name
+```
+Portfolio Contact Form
 ```
 
----
-
-## Design Features
-
-This template includes:
-
-✨ **Dark Galaxy Theme** - Matches your #050505 background  
-🔴 **Red Accent Colors** - Uses your #FF0000 brand color  
-💫 **Floating Particles** - Subtle stellar effects  
-🎨 **Gradient Borders** - Modern glassmorphism style  
-📱 **Mobile Responsive** - Looks great on all devices  
-⚡ **Professional Layout** - Clean, organized information  
-🌟 **Glowing Effects** - Subtle shadows and highlights  
-
----
-
-## Variables Used
-
-Make sure these match your Contact.tsx form fields:
+### Template Variables (Auto-detected)
 - `{{from_name}}` - Sender's name
 - `{{from_email}}` - Sender's email
 - `{{subject}}` - Message subject
@@ -242,23 +24,279 @@ Make sure these match your Contact.tsx form fields:
 
 ---
 
+## Basic Template (Plain Text)
+
+Use this if you want a simple, clean email:
+
+### Subject Line:
+```
+New Contact: {{subject}}
+```
+
+### Email Body:
+```
+You have a new message from your portfolio website!
+
+
+
+FROM: {{from_name}}
+EMAIL: {{from_email}}
+SUBJECT: {{subject}}
+
+
+
+MESSAGE:
+
+{{message}}
+
+
+
+Reply directly to this email to respond to {{from_name}}.
+```
+
+---
+
+## Professional HTML Template (Recommended)
+
+Use this for a polished, branded look:
+
+### Subject Line:
+```
+ New Portfolio Contact: {{subject}}
+```
+
+### Email Body (HTML):
+```html
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>New Contact Message</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff;">
+ 
+ <!-- Main Container -->
+ <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
+ <tr>
+ <td align="center">
+ 
+ <!-- Email Card -->
+ <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border: 1px solid rgba(255, 0, 0, 0.2); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(255, 0, 0, 0.1);">
+ 
+ <!-- Header -->
+ <tr>
+ <td style="background: linear-gradient(135deg, #FF0000 0%, #cc0000 100%); padding: 30px; text-align: center;">
+ <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
+ New Contact Message
+ </h1>
+ <p style="margin: 8px 0 0 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);">
+ From your portfolio website
+ </p>
+ </td>
+ </tr>
+ 
+ <!-- Content -->
+ <tr>
+ <td style="padding: 40px 30px;">
+ 
+ <!-- Sender Info Card -->
+ <table width="100%" cellpadding="0" cellspacing="0" style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; margin-bottom: 24px;">
+ <tr>
+ <td style="padding: 20px;">
+ <table width="100%" cellpadding="0" cellspacing="0">
+ <tr>
+ <td style="padding-bottom: 12px;">
+ <span style="display: inline-block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px;">From</span>
+ <p style="margin: 4px 0 0 0; font-size: 18px; font-weight: 600; color: #ffffff;">
+ {{from_name}}
+ </p>
+ </td>
+ </tr>
+ <tr>
+ <td style="padding-bottom: 12px;">
+ <span style="display: inline-block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px;">Email</span>
+ <p style="margin: 4px 0 0 0; font-size: 16px; color: #FF0000;">
+ <a href="mailto:{{from_email}}" style="color: #FF0000; text-decoration: none;">{{from_email}}</a>
+ </p>
+ </td>
+ </tr>
+ <tr>
+ <td>
+ <span style="display: inline-block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px;">Subject</span>
+ <p style="margin: 4px 0 0 0; font-size: 16px; color: rgba(255, 255, 255, 0.9);">
+ {{subject}}
+ </p>
+ </td>
+ </tr>
+ </table>
+ </td>
+ </tr>
+ </table>
+ 
+ <!-- Message Content -->
+ <div style="margin-bottom: 24px;">
+ <span style="display: inline-block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Message</span>
+ <div style="background-color: rgba(255, 255, 255, 0.03); border-left: 3px solid #FF0000; border-radius: 8px; padding: 20px; margin-top: 12px;">
+ <p style="margin: 0; font-size: 15px; line-height: 1.7; color: rgba(255, 255, 255, 0.85); white-space: pre-wrap;">{{message}}</p>
+ </div>
+ </div>
+ 
+ <!-- Action Button -->
+ <table width="100%" cellpadding="0" cellspacing="0">
+ <tr>
+ <td align="center" style="padding-top: 12px;">
+ <a href="mailto:{{from_email}}" style="display: inline-block; background: linear-gradient(135deg, #FF0000 0%, #cc0000 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 16px rgba(255, 0, 0, 0.3);">
+ Reply to {{from_name}}
+ </a>
+ </td>
+ </tr>
+ </table>
+ 
+ </td>
+ </tr>
+ 
+ <!-- Footer -->
+ <tr>
+ <td style="background-color: rgba(255, 255, 255, 0.02); padding: 24px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+ <p style="margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.4);">
+ Sent from your portfolio contact form
+ </p>
+ <p style="margin: 8px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.3);">
+ Powered by EmailJS
+ </p>
+ </td>
+ </tr>
+ 
+ </table>
+ 
+ </td>
+ </tr>
+ </table>
+ 
+</body>
+</html>
+```
+
+---
+
+## Auto-Reply Template (Optional)
+
+Create a second template to automatically thank people who contact you:
+
+### Template Name:
+```
+Portfolio Contact - Auto Reply
+```
+
+### Subject Line:
+```
+Thanks for reaching out! 
+```
+
+### Email Body:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0a0a0a;">
+ 
+ <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
+ <tr>
+ <td align="center">
+ 
+ <table width="600" cellpadding="0" cellspacing="0" style="background: #1a1a1a; border: 1px solid rgba(255, 0, 0, 0.2); border-radius: 16px; overflow: hidden;">
+ 
+ <tr>
+ <td style="background: linear-gradient(135deg, #FF0000 0%, #cc0000 100%); padding: 30px; text-align: center;">
+ <h1 style="margin: 0; font-size: 28px; color: #ffffff;">
+ Thanks for reaching out! 
+ </h1>
+ </td>
+ </tr>
+ 
+ <tr>
+ <td style="padding: 40px 30px;">
+ <p style="margin: 0 0 16px 0; font-size: 16px; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+ Hi <strong>{{from_name}}</strong>,
+ </p>
+ <p style="margin: 0 0 16px 0; font-size: 16px; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+ Thanks for contacting me through my portfolio! I've received your message about <strong>"{{subject}}"</strong> and I'll get back to you as soon as possible.
+ </p>
+ <p style="margin: 0 0 16px 0; font-size: 16px; color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+ I typically respond within 24-48 hours. In the meantime, feel free to check out my other projects or connect with me on social media.
+ </p>
+ <p style="margin: 24px 0 0 0; font-size: 16px; color: rgba(255, 255, 255, 0.9);">
+ Best regards,<br>
+ <strong style="color: #FF0000;">Rhenmart</strong>
+ </p>
+ </td>
+ </tr>
+ 
+ <tr>
+ <td style="background-color: rgba(255, 255, 255, 0.02); padding: 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+ <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.4);">
+ This is an automated response. Please do not reply to this email.
+ </p>
+ </td>
+ </tr>
+ 
+ </table>
+ 
+ </td>
+ </tr>
+ </table>
+ 
+</body>
+</html>
+```
+
+---
+
+## Setup Instructions
+
+### For Main Template (You receive):
+1. Go to EmailJS Email Templates Create New Template
+2. Name it "Portfolio Contact Form"
+3. Paste the HTML template above
+4. Set "To Email" to: `Rhenmart978@gmail.com`
+5. Save and copy the Template ID
+
+### For Auto-Reply (Sender receives):
+1. Create another template
+2. Name it "Portfolio Contact - Auto Reply"
+3. Paste the auto-reply HTML
+4. Set "To Email" to: `{{from_email}}`
+5. Save the Template ID
+
+### Update Contact.tsx
+Replace the template ID in your code with the one you just created.
+
+---
+
 ## Testing
 
-After setup:
-1. Submit your contact form
-2. Check Rhenmart978@gmail.com inbox
-3. You should see a beautiful dark-themed email!
+After setup, test by:
+1. Submitting your contact form
+2. Check your Gmail inbox for the styled email
+3. The sender should receive the auto-reply (if configured)
 
 ---
 
-## Customization
+## Customization Tips
 
-Want to tweak it? Change these values:
-- `#FF0000` - Your primary red color
-- `#050505` - Background color
-- Font sizes and spacing as needed
-- Add your logo URL in the header
+- Change `#FF0000` to match your brand color
+- Update "Rhenmart" in the auto-reply to your name
+- Add your social media links in the footer
+- Modify the greeting message to fit your style
 
 ---
 
-Perfect match for your stellar portfolio design! 🚀
+Need help? The template variables must match your form field names:
+- `from_name` matches `name="from_name"` in Contact.tsx
+- `from_email` matches `name="from_email"` in Contact.tsx
+- `subject` matches `name="subject"` in Contact.tsx
+- `message` matches `name="message"` in Contact.tsx
