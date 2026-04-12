@@ -2,11 +2,7 @@ import { motion } from "motion/react";
 import { Download, Sparkles, Code2, Lightbulb } from "lucide-react";
 import secondProfileImg from "../../Image/new9249-_DSC0331.jpg";
 import { generateResume } from "../utils/generateResume";
-import { StellarBackground } from "./StellarBackground";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
 
 const skills = [
   { label: "UI/UX Design", icon: Sparkles },
@@ -15,6 +11,8 @@ const skills = [
 ];
 
 export function About() {
+  const { enable3DTilt } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   return (
     <section id="about" className="py-24 bg-[#050505] relative overflow-hidden">
       {/* Bg orb — box-shadow instead of blur, skip on Safari/mobile */}
@@ -55,11 +53,6 @@ export function About() {
             transition={{ duration: 0.7 }}
             className="col-span-1 md:col-span-5 relative group"
           >
-            {/* Stellar background — desktop non-Safari only */}
-            <div className="absolute inset-0 rounded-t-[10rem] rounded-b-[2rem] overflow-hidden pointer-events-none -z-5">
-              {!reduceEffects && <StellarBackground density="low" showOrbitalRings={false} className="rounded-t-[10rem] rounded-b-[2rem]" />}
-            </div>
-
             {/* Orbital rings — desktop non-Safari only */}
             {!reduceEffects && [0, 1].map((i) => (
               <motion.div

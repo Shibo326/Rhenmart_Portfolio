@@ -1,14 +1,11 @@
 import { motion, useScroll, useTransform } from "motion/react";
-import { ArrowRight, Download, Sparkles, Zap, Linkedin, Github, Instagram, Facebook } from "lucide-react";
+import { ArrowRight, Download, Sparkles, Zap, Trophy, Linkedin, Github, Instagram, Facebook } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import profileImg from "../../Image/Rhenmart_Profile.jpeg";
 import { ease, springs } from "../hooks/useDeviceAnimations";
 import { generateResume } from "../utils/generateResume";
-import { StellarBackground } from "./StellarBackground";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile: reduceHero, isSafari } = detectDeviceCapability();
-const reduceEffects = reduceHero || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
+import { MagneticButton } from "./MagneticButton";
 
 // Typing Animation Component
 function TypingAnimation() {
@@ -68,15 +65,19 @@ function TypingAnimation() {
         {displayText}
       </motion.span>
       <motion.span
-        animate={{ opacity: [0, 1, 0] }}
+        animate={{ opacity: [1, 0.2, 1] }}
         transition={{ duration: 0.8, repeat: Infinity }}
-        className="inline-block w-1 h-8 sm:h-10 md:h-12 bg-[#FF0000] ml-1 align-middle"
+        className="inline-block w-0.5 h-8 sm:h-10 md:h-12 bg-[#FF0000] ml-1 align-middle"
+        aria-hidden="true"
       />
     </span>
   );
 }
 
 export function Hero() {
+  const { enable3DTilt, isMobile } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
+  const reduceHero = isMobile;
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
   const imgY = useTransform(scrollYProgress, [0, 1], [0, reduceHero ? 0 : -60]);
@@ -94,7 +95,7 @@ export function Hero() {
 
   return (
     <section ref={sectionRef} id="home"
-      className="min-h-screen w-full flex items-center relative overflow-hidden bg-[#050505]">
+      className="min-h-[100svh] w-full flex items-center relative overflow-hidden bg-[#050505]">
 
       {/* Bg orbs — box-shadow instead of blur on Safari */}
       {!reduceEffects ? (
@@ -116,13 +117,14 @@ export function Hero() {
       {/* Floating particles — desktop non-Safari only */}
       {!reduceEffects && [0,1,2,3,4].map((i) => (
         <motion.div key={i}
+          aria-hidden="true"
           animate={{ y: [0, -20, 0], opacity: [0, 0.4, 0] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.8 }}
           className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
           style={{ left: `${10 + i * 18}%`, top: `${25 + (i % 3) * 20}%` }} />
       ))}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-20 md:py-0 md:min-h-screen flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-20 md:py-0 md:min-h-[100svh] flex items-center">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 w-full items-center">
 
           {/* ── Left Content ── */}
@@ -132,7 +134,7 @@ export function Hero() {
             {/* Available badge — enhanced */}
             <motion.div initial={{ opacity:0, x:-30 }} animate={{ opacity:1, x:0 }}
               transition={{ duration:0.6, delay:0.1, ease: ease.out }}
-              className="inline-flex items-center gap-2.5 w-fit px-4 py-2 bg-[#FF0000]/10 border border-[#FF0000]/30 rounded-full backdrop-blur-sm">
+              className="inline-flex items-center gap-2.5 w-fit px-4 py-2 bg-[#FF0000]/10 border border-[#FF0000]/30 rounded-full" style={{ backdropFilter: reduceEffects ? 'none' : 'blur(8px)', WebkitBackdropFilter: reduceEffects ? 'none' : 'blur(8px)' }}>
               <motion.span animate={{ scale:[1,1.5,1], opacity:[0.5,1,0.5] }} 
                 transition={{ duration:1.5, repeat:Infinity }}
                 className="relative">
@@ -224,20 +226,22 @@ export function Hero() {
             <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
               transition={{ duration:0.5, delay:1.4, ease: ease.out }}
               className="flex flex-wrap gap-4">
-              <motion.a href="#contact"
-                whileHover={{ scale:1.05, boxShadow:"0 0 40px rgba(255,0,0,0.6)" }}
-                whileTap={{ scale:0.97 }}
-                className="group relative px-8 sm:px-9 py-3.5 sm:py-4 bg-[#FF0000] text-white font-bold rounded-full transition-all duration-300 text-sm sm:text-base overflow-hidden">
-                <motion.span
-                  animate={{ x: ["-100%", "200%"] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                  className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
-                />
-                <span className="relative flex items-center gap-2">
-                  Hire Me
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </span>
-              </motion.a>
+              <MagneticButton>
+                <motion.a href="#contact"
+                  whileHover={{ scale:1.05, boxShadow:"0 0 40px rgba(255,0,0,0.6)" }}
+                  whileTap={{ scale:0.97 }}
+                  className="group relative px-8 sm:px-9 py-3.5 sm:py-4 bg-[#FF0000] text-white font-bold rounded-full transition-all duration-300 text-sm sm:text-base overflow-hidden">
+                  <motion.span
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                    className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
+                  />
+                  <span className="relative flex items-center gap-2">
+                    Hire Me
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </motion.a>
+              </MagneticButton>
               <motion.a href="#download"
                 whileHover={{ scale:1.05, borderColor:"#FF0000", color:"#FF0000", backgroundColor:"rgba(255,0,0,0.1)" }}
                 whileTap={{ scale:0.97 }}
@@ -266,7 +270,7 @@ export function Hero() {
               {[
                 { value:"5+", label:"Years of Solo Learning Experience", icon: Sparkles, color: "#FF0000" }, 
                 { value:"7", label:"Projects", icon: Zap, color: "#FF4444" }, 
-                { value:"4x", label:"Competition Winner", icon: Github, color: "#FF0000" }
+                { value:"4x", label:"Competition Winner", icon: Trophy, color: "#FF0000" }
               ].map(({ value, label, icon: Icon, color }, i) => (
                 <motion.div key={i} 
                   whileHover={{ scale:1.05, y:-8 }} 
@@ -342,11 +346,6 @@ export function Hero() {
             initial={{ opacity:0, scale:0.8, x:40 }} animate={{ opacity:1, scale:1, x:0 }}
             transition={{ duration:0.9, delay:0.4, ease: ease.out }}
             className="order-1 md:order-2 flex justify-center md:justify-end relative group">
-
-            {/* Stellar background — desktop non-Safari only */}
-            <div className="absolute inset-0 rounded-[2.5rem] -z-5">
-              {!reduceEffects && <StellarBackground density="medium" showOrbitalRings={false} className="rounded-[2.5rem]" />}
-            </div>
 
             {/* Orbital rings — desktop non-Safari only */}
             {!reduceEffects && [0, 1].map((i) => (
@@ -424,7 +423,7 @@ export function Hero() {
               animate={{ opacity:1, x:0, scale:1 }}
               transition={{ delay:1.2, ...springs.bouncy }}
               whileHover={{ scale: 1.05, y: -5 }}
-              className="absolute bottom-4 -left-2 sm:-left-6 bg-gradient-to-br from-[#111] to-[#000] border border-white/20 rounded-2xl px-4 py-2.5 shadow-2xl backdrop-blur-md hidden sm:block overflow-hidden group/badge">
+              className="absolute bottom-4 -left-2 sm:-left-6 bg-gradient-to-br from-[#111] to-[#000] border border-white/20 rounded-2xl px-4 py-2.5 shadow-2xl backdrop-blur-md overflow-hidden group/badge">
               
               {/* Badge glow */}
               <motion.div
@@ -455,7 +454,7 @@ export function Hero() {
 
       {/* Scroll indicator */}
       <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:2.5, duration:1 }}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 pointer-events-none">
+        className="absolute bottom-5 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-1.5 pointer-events-none">
         <span className="text-white/25 text-[9px] uppercase tracking-[0.2em] font-medium hidden sm:block">Scroll Down</span>
         <div className="w-4 h-7 border border-white/20 rounded-full flex justify-center p-1">
           <motion.div animate={{ y:[0,8,0], opacity:[1,0,1] }} transition={{ repeat:Infinity, duration:1.5 }}

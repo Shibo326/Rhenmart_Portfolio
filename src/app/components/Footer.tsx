@@ -2,10 +2,7 @@ import { motion, useInView } from "motion/react";
 import { Mail, Phone, Heart } from "lucide-react";
 import { Linkedin, Github, Instagram, Facebook } from "lucide-react";
 import { useRef } from "react";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
 
 const navLinks = ["Home", "Services", "About", "Portfolio", "Contact"];
 const socials = [
@@ -16,6 +13,8 @@ const socials = [
 ];
 
 export function Footer() {
+  const { enable3DTilt } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-40px" });
   const year = new Date().getFullYear();
@@ -77,6 +76,16 @@ export function Footer() {
               initial={{ opacity: 0, y: 10 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.06, duration: 0.4 }}
+              onClick={(e) => {
+                e.preventDefault();
+                const id = name.toLowerCase();
+                if (id === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+                const target = document.querySelector(`#${id}`);
+                if (target) {
+                  const top = target.getBoundingClientRect().top + window.scrollY - 80;
+                  window.scrollTo({ top, behavior: "smooth" });
+                }
+              }}
               className="text-white/40 text-xs font-semibold uppercase tracking-widest hover:text-[#FF0000] transition-colors duration-200"
             >
               {name}

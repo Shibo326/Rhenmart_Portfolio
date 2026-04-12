@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, type Variants } from "motion/react";
-import { useState, useRef, useCallback, memo } from "react";
+import { useState, useRef, useCallback, memo, useEffect } from "react";
 import { X, ExternalLink, Code, Trophy, Layers, Filter } from "lucide-react";
 import champImg from "../../Image/umak champ.jpg";
 import ndcImg from "../../Image/ndc_startup.jpeg";
@@ -8,10 +8,7 @@ import tagisan2 from "../../Image/Tagisan ng talino second placer.jpg";
 import uxphImg from "../../Image/UXPH SEMINAR.jpeg";
 import beyondUiImg from "../../Image/Beyond ui.jpg";
 import exploringFigmaImg from "../../Image/Exploring The basics of figma.jpg";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
 
 type Category = "All" | "Competition" | "Workshop" | "Seminar" | "Case Studies";
 
@@ -53,6 +50,8 @@ const mobileCardVariants: Variants = {
 };
 
 const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { item: typeof portfolioItems[0]; index: number; onClick: () => void }) {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const ref = useRef<HTMLDivElement>(null);
   const mx = useMotionValue(0), my = useMotionValue(0);
   const rx = useSpring(useTransform(my, [-60, 60], [4, -4]), { stiffness: 200, damping: 28 });
@@ -160,14 +159,33 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
 });
 
 export function Portfolio() {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<Category>("All");
   const [showAll, setShowAll] = useState(false);
+  const touchStartY = useRef(0);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const selectedItem = portfolioItems.find(i => i.id === selectedId);
   const filtered = activeTab === "All" ? portfolioItems : portfolioItems.filter(i => i.category === activeTab);
   const displayedItems = showAll ? filtered : filtered.slice(0, 9);
   const hasMore = filtered.length > 9;
   const counts = TABS.reduce((a, t) => ({ ...a, [t]: t === "All" ? portfolioItems.length : portfolioItems.filter(i => i.category === t).length }), {} as Record<string, number>);
+
+  const handleTabClick = (tab: Category) => {
+    setActiveTab(tab);
+    setShowAll(false);
+    // Scroll to top of portfolio grid
+    setTimeout(() => {
+      document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
 
   return (
     <section id="portfolio" className="py-24 bg-[#080808] relative overflow-hidden">
@@ -261,16 +279,18 @@ export function Portfolio() {
             <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Seminar</span>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} 
-            transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
-            className="sm:col-span-2 flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
-          >
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">0</span>
-            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Case Studies</span>
-          </motion.div>
+          {counts['Case Studies'] > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }} 
+              transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
+              className="sm:col-span-2 flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+            >
+              <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">{counts['Case Studies']}</span>
+              <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Case Studies</span>
+            </motion.div>
+          )}
         </div>
 
         {/* Filter Tabs */}
@@ -292,7 +312,7 @@ export function Portfolio() {
               const active = activeTab === tab;
               const cfg = tab !== "All" ? categoryConfig[tab] : null;
               return (
-                <motion.button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
+                <motion.button key={tab} onClick={() => handleTabClick(tab)}
                   whileTap={{ scale: 0.95 }}
                   className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${active ? `${cfg?.bg ?? "bg-white"} ${cfg?.text ?? "text-black"} border-transparent shadow-lg` : "bg-white/5 text-white/40 border-white/10 hover:text-white/70 hover:border-white/20"}`}>
                   {tab}
@@ -323,6 +343,19 @@ export function Portfolio() {
             <PortfolioCard key={`${activeTab}-${item.id}`} item={item} index={i} onClick={() => setSelectedId(item.id)} />
           ))}
         </div>
+
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-20 gap-3 text-center"
+          >
+            <span className="text-4xl">🎨</span>
+            <p className="text-white/40 text-sm font-medium">No projects in this category yet.</p>
+            <p className="text-white/20 text-xs">Check back soon — more work is on the way.</p>
+          </motion.div>
+        )}
 
         {/* See More Button */}
         {hasMore && !showAll && (
@@ -394,7 +427,12 @@ export function Portfolio() {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
               onClick={() => setSelectedId(null)}
+              onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY; }}
+              onTouchEnd={(e) => { if (e.changedTouches[0].clientY - touchStartY.current > 60) setSelectedId(null); }}
               className="fixed inset-0 z-[100] bg-black/90 flex items-start sm:items-center justify-center p-3 sm:p-10 overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-label={selectedItem.title}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 40 }}

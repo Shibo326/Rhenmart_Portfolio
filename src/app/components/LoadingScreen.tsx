@@ -1,58 +1,6 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
-import { useEffect, useRef, useState } from "react";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
-
-// Canvas — desktop only
-function ParticleCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (isMobile || isSafari) return; // skip on mobile and Safari
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-
-    type Particle = { orbitRadius: number; orbitSpeed: number; orbitAngle: number; size: number; opacity: number };
-    const particles: Particle[] = Array.from({ length: 20 }, () => ({
-      orbitRadius: 80 + Math.random() * 100,
-      orbitSpeed: (0.004 + Math.random() * 0.006) * (Math.random() > 0.5 ? 1 : -1),
-      orbitAngle: Math.random() * Math.PI * 2,
-      size: 0.8 + Math.random() * 1.2,
-      opacity: 0.15 + Math.random() * 0.35,
-    }));
-
-    let frame: number;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const p of particles) {
-        p.orbitAngle += p.orbitSpeed;
-        const x = cx + Math.cos(p.orbitAngle) * p.orbitRadius;
-        const y = cy + Math.sin(p.orbitAngle) * p.orbitRadius * 0.5;
-        ctx.beginPath();
-        ctx.arc(x, y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,40,40,${p.opacity})`;
-        ctx.fill();
-      }
-      frame = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  if (isMobile || isSafari) return null;
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none opacity-40" />;
-}
+import { useEffect, useState } from "react";
+import { useAnimationConfig } from "../context/AnimationContext";
 
 // Counter
 function Counter({ value }: { value: number }) {
@@ -70,6 +18,8 @@ function Counter({ value }: { value: number }) {
 }
 
 export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+  const { isMobile, isSafari, enable3DTilt } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
 
@@ -100,7 +50,25 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-[9999] bg-[#030303] flex flex-col items-center justify-center overflow-hidden"
         >
-          <ParticleCanvas />
+          <>
+            <style>{`
+              @keyframes ambientFloat {
+                0%, 100% { opacity: 0; transform: translateY(0); }
+                50% { opacity: 0.35; transform: translateY(-20px); }
+              }
+            `}</style>
+            {!isMobile && !isSafari && Array.from({ length: 6 }, (_, i) => (
+              <div
+                key={i}
+                className="absolute w-[1px] h-[1px] bg-[#FF0000] rounded-full pointer-events-none"
+                style={{
+                  left: `${15 + i * 14}%`,
+                  top: `${30 + (i % 3) * 20}%`,
+                  animation: `ambientFloat ${3 + i * 0.5}s ease-in-out ${i * 0.4}s infinite`,
+                }}
+              />
+            ))}
+          </>
 
           {/* Static bg orb — box-shadow instead of blur */}
           {!reduceEffects && (

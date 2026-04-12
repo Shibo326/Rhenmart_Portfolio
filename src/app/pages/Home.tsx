@@ -6,100 +6,16 @@ import { Skills } from "../components/Skills";
 import { Portfolio } from "../components/Portfolio";
 import { Contact } from "../components/Contact";
 import { Footer } from "../components/Footer";
-import { ParticleField } from "../components/ParticleField";
+import { AmbientLayer } from "../components/AmbientLayer";
 import { useEffect, useRef, useState, memo } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "motion/react";
 import { ChevronUp } from "lucide-react";
-import { getAnimationConfig, detectDeviceCapability } from "../utils/performance";
-
-const config = getAnimationConfig();
-const { tier, isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = tier === "low" || isSafari;
-
-// ── Lightweight canvas background ──────────────────────────────────────────
-const LiveBackground = memo(function LiveBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (!config.canvasBackground) return; // Only on high-end devices
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-
-    const nodeCount = tier === "high" ? 40 : 20;
-    type Node = { x: number; y: number; vx: number; vy: number; r: number };
-    const nodes: Node[] = Array.from({ length: nodeCount }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      r: 1 + Math.random() * 1.2,
-    }));
-
-    let frame: number;
-    let lastTime = 0;
-    const interval = 1000 / config.fps;
-
-    const draw = (ts: number) => {
-      frame = requestAnimationFrame(draw);
-      if (ts - lastTime < interval) return;
-      lastTime = ts;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (const n of nodes) {
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
-        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
-      }
-
-      // Connections
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const d = dx * dx + dy * dy;
-          if (d < 14400) { // 120px
-            ctx.beginPath();
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.strokeStyle = `rgba(255,0,0,${(1 - Math.sqrt(d) / 120) * 0.07})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      }
-
-      // Nodes
-      for (const n of nodes) {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255,40,40,0.3)";
-        ctx.fill();
-      }
-    };
-
-    frame = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(frame); window.removeEventListener("resize", resize); };
-  }, []);
-
-  if (!config.canvasBackground) return null;
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none opacity-30" style={{ zIndex: -1, contain: "strict" }} />;
-});
+import { useAnimationConfig } from "../context/AnimationContext";
 
 // ── Scroll progress bar — smoother spring ──────────────────────────────────
 const ScrollProgressBar = memo(function ScrollProgressBar() {
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 60, damping: 25, restDelta: 0.001 });
+  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 40, restDelta: 0.001 });
   return (
     <motion.div
       style={{ scaleX, transformOrigin: "0%" }}
@@ -108,10 +24,38 @@ const ScrollProgressBar = memo(function ScrollProgressBar() {
   );
 });
 
-// ── Section reveal — smoother easing ───────────────────────────────────────
-const RevealSection = memo(function RevealSection({ children }: { children: React.ReactNode }) {
+// ── Section reveal — personality per section ───────────────────────────────
+function makeSectionVariants(reduce: boolean) {
+  return {
+    services: {
+      initial: { opacity: 0, y: reduce ? 0 : 60 },
+      animate: { opacity: 1, y: 0 },
+    },
+    about: {
+      initial: { opacity: 0, x: reduce ? 0 : -40 },
+      animate: { opacity: 1, x: 0 },
+    },
+    skills: {
+      initial: { opacity: 0, scale: reduce ? 1 : 0.96 },
+      animate: { opacity: 1, scale: 1 },
+    },
+    portfolio: {
+      initial: { opacity: 0, y: reduce ? 0 : 50, rotateX: reduce ? 0 : 4 },
+      animate: { opacity: 1, y: 0, rotateX: 0 },
+    },
+    contact: {
+      initial: { opacity: 0, y: reduce ? 0 : 40 },
+      animate: { opacity: 1, y: 0 },
+    },
+  };
+}
+
+const RevealSection = memo(function RevealSection({ children, section }: { children: React.ReactNode; section?: string }) {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const sectionVariants = makeSectionVariants(isMobile || isSafari);
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const variant = section ? sectionVariants[section] : sectionVariants.services;
 
   useEffect(() => {
     const el = ref.current; if (!el) return;
@@ -126,9 +70,10 @@ const RevealSection = memo(function RevealSection({ children }: { children: Reac
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: reduceEffects ? 0 : 40 }}
-      animate={visible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      initial={variant.initial}
+      animate={visible ? variant.animate : {}}
+      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      style={section === 'portfolio' ? { perspective: "1200px" } : {}}
     >
       {children}
     </motion.div>
@@ -137,6 +82,8 @@ const RevealSection = memo(function RevealSection({ children }: { children: Reac
 
 // ── Scroll orbs — desktop non-Safari only ──────────────────────────────────
 const ScrollOrbs = memo(function ScrollOrbs() {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 4000], [0, -300]);
   const y2 = useTransform(scrollY, [0, 4000], [0, -150]);
@@ -160,27 +107,52 @@ const ScrollOrbs = memo(function ScrollOrbs() {
 
 // ── Cursor glow — desktop only ──────────────────────────────────────────────
 const CursorGlow = memo(function CursorGlow() {
+  const { enableCursorGlow } = useAnimationConfig();
   const x = useMotionValue(-300);
   const y = useMotionValue(-300);
-  const sx = useSpring(x, { stiffness: 300, damping: 40 });
-  const sy = useSpring(y, { stiffness: 300, damping: 40 });
+  const sx = useSpring(x, { stiffness: 200, damping: 20 });
+  const sy = useSpring(y, { stiffness: 200, damping: 20 });
+  const glowOpacity = useMotionValue(0.12);
+  const animOpacity = useSpring(glowOpacity, { stiffness: 200, damping: 20 });
 
   useEffect(() => {
-    if (reduceEffects) return;
+    if (!enableCursorGlow) return;
     const move = (e: MouseEvent) => { x.set(e.clientX); y.set(e.clientY); };
     window.addEventListener("mousemove", move, { passive: true });
-    return () => window.removeEventListener("mousemove", move);
-  }, [x, y]);
 
-  if (reduceEffects) return null;
+    // Intensify on interactive elements
+    const onEnter = (e: Event) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('button, a, [data-interactive]')) {
+        glowOpacity.set(0.2);
+      }
+    };
+    const onLeave = (e: Event) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('button, a, [data-interactive]')) {
+        glowOpacity.set(0.12);
+      }
+    };
+    document.addEventListener("pointerover", onEnter, { passive: true });
+    document.addEventListener("pointerout", onLeave, { passive: true });
+
+    return () => {
+      window.removeEventListener("mousemove", move);
+      document.removeEventListener("pointerover", onEnter);
+      document.removeEventListener("pointerout", onLeave);
+    };
+  }, [x, y, glowOpacity, enableCursorGlow]);
+
+  if (!enableCursorGlow) return null;
 
   return (
     <motion.div
-      className="fixed z-[-1] w-48 h-48 rounded-full pointer-events-none"
+      className="fixed z-[-1] w-32 h-32 rounded-full pointer-events-none"
       style={{
         left: sx, top: sy,
         x: "-50%", y: "-50%",
-        background: "radial-gradient(circle, rgba(255,0,0,0.07) 0%, transparent 70%)",
+        opacity: animOpacity,
+        background: "radial-gradient(circle, rgba(255,0,0,0.25) 0%, rgba(255,0,0,0.08) 40%, transparent 70%)",
         willChange: "transform",
       }}
     />
@@ -189,6 +161,7 @@ const CursorGlow = memo(function CursorGlow() {
 
 // ── Animated section divider ───────────────────────────────────────────────
 function Divider() {
+  const { isMobile } = useAnimationConfig();
   return (
     <div className="h-px relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FF0000]/25 to-transparent" />
@@ -205,6 +178,8 @@ function Divider() {
 
 // ── Home ────────────────────────────────────────────────────────────────────
 export function Home() {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const [showTopBtn, setShowTopBtn] = useState(false);
 
   useEffect(() => {
@@ -219,8 +194,7 @@ export function Home() {
       style={{ fontFamily: '"Inter", sans-serif' }}
     >
       {/* Backgrounds */}
-      <LiveBackground />
-      {config.particleCount > 0 && <ParticleField density={config.particleCount} color="255,0,0" />}
+      <AmbientLayer className="fixed inset-0 z-[-1] pointer-events-none" />
       <ScrollOrbs />
       <CursorGlow />
 
@@ -248,15 +222,15 @@ export function Home() {
       <main>
         <Hero />
         <Divider />
-        <RevealSection><Services /></RevealSection>
+        <RevealSection section="services"><Services /></RevealSection>
         <Divider />
-        <RevealSection><About /></RevealSection>
+        <RevealSection section="about"><About /></RevealSection>
         <Divider />
-        <RevealSection><Skills /></RevealSection>
+        <RevealSection section="skills"><Skills /></RevealSection>
         <Divider />
-        <RevealSection><Portfolio /></RevealSection>
+        <RevealSection section="portfolio"><Portfolio /></RevealSection>
         <Divider />
-        <RevealSection><Contact /></RevealSection>
+        <RevealSection section="contact"><Contact /></RevealSection>
       </main>
 
       <Footer />
@@ -272,7 +246,7 @@ export function Home() {
             whileHover={{ scale: 1.15, rotate: isMobile ? 0 : 360, boxShadow: "0 0 28px rgba(255,0,0,0.6)" }}
             whileTap={{ scale: 0.9 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 right-6 z-50 p-3.5 bg-[#FF0000]/15 border border-[#FF0000]/40 text-white rounded-full hover:bg-[#FF0000] transition-colors duration-300 group overflow-hidden"
+            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50 p-3.5 bg-[#FF0000]/15 border border-[#FF0000]/40 text-white rounded-full hover:bg-[#FF0000] transition-colors duration-300 group overflow-hidden"
             aria-label="Scroll to top"
           >
             <ChevronUp size={22} className="group-hover:animate-bounce" />

@@ -1,11 +1,10 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Send, Mail, Phone, MapPin, CheckCircle, AlertCircle } from "lucide-react";
+import { Send, Mail, Phone, MapPin } from "lucide-react";
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
+import { MagneticButton } from "./MagneticButton";
+import { Toast } from "./Toast";
 
 // ─── EmailJS Configuration ─────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID = "service_6r1ytvj";
@@ -20,16 +19,36 @@ const contactInfo = [
 ];
 
 export function Contact() {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const [focused, setFocused] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [filledFields, setFilledFields] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastVariant, setToastVariant] = useState<'success' | 'error'>('success');
+  const [shakeError, setShakeError] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const subjectRef = useRef<HTMLInputElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const handleBlur = (id: string, value: string) => {
+    setFocused(null);
+    setFilledFields(prev => {
+      const next = new Set(prev);
+      if (value.trim()) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const getBorderColor = (id: string) => {
+    if (focused === id) return '#FF0000';
+    if (filledFields.has(id)) return 'rgba(255,0,0,0.4)';
+    return 'rgba(255,255,255,0.1)';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +58,6 @@ export function Contact() {
     if (!name || !email || !message) return;
 
     setSending(true);
-    setError(false);
 
     try {
       await emailjs.sendForm(
@@ -48,12 +66,15 @@ export function Contact() {
         formRef.current!,
         EMAILJS_PUBLIC_KEY
       );
-      setSent(true);
+      setToastVariant('success');
+      setShowToast(true);
       formRef.current?.reset();
-      setTimeout(() => setSent(false), 5000);
+      setFilledFields(new Set());
     } catch {
-      setError(true);
-      setTimeout(() => setError(false), 4000);
+      setToastVariant('error');
+      setShowToast(true);
+      setShakeError(true);
+      setTimeout(() => setShakeError(false), 500);
     } finally {
       setSending(false);
     }
@@ -61,7 +82,22 @@ export function Contact() {
 
   return (
     <section id="contact" className="py-24 bg-[#050505] relative overflow-hidden">
-      {/* Bg orb — box-shadow instead of blur */}
+      {/* Toast notification */}
+      <AnimatePresence>
+        {showToast && (
+          <Toast
+            message={
+              toastVariant === 'success'
+                ? "Message sent! I'll get back to you soon."
+                : "Failed to send. Please try again."
+            }
+            variant={toastVariant}
+            onDismiss={() => setShowToast(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Bg orb */}
       <motion.div
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 8, repeat: Infinity }}
@@ -72,6 +108,7 @@ export function Contact() {
       {/* Floating dots — desktop non-Safari only */}
       {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
         <motion.div key={i}
+          aria-hidden="true"
           animate={{ y: [0, -18, 0], opacity: [0, 0.35, 0] }}
           transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
           className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
@@ -134,7 +171,7 @@ export function Contact() {
                 key={label}
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
-                rel="noopener noreferrer"
+                rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
@@ -194,128 +231,103 @@ export function Contact() {
               className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none"
             />
 
-            <AnimatePresence mode="wait">
-              {sent ? (
+            <form
+              ref={formRef}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+              onSubmit={handleSubmit}
+            >
+              {[
+                { id: "name", label: "Your Name", type: "text", placeholder: "John Doe", col: 1, ref: nameRef, name: "from_name", autoComplete: "name", required: true },
+                { id: "email", label: "Your Email", type: "email", placeholder: "john@example.com", col: 1, ref: emailRef, name: "from_email", autoComplete: "email", required: true },
+                { id: "subject", label: "Subject (optional)", type: "text", placeholder: "Project Inquiry", col: 2, ref: subjectRef, name: "subject", autoComplete: "off", required: false },
+              ].map(({ id, label, type, placeholder, col, ref, name, autoComplete, required }) => (
                 <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="flex flex-col items-center justify-center h-full py-16 gap-4"
+                  key={id}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  className={`space-y-2 ${col === 2 ? "sm:col-span-2" : ""}`}
                 >
-                  <motion.div animate={{ scale: [0, 1.2, 1] }} transition={{ duration: 0.5 }}>
-                    <CheckCircle size={56} className="text-green-400" />
-                  </motion.div>
-                  <p className="text-white text-xl font-bold">Message Sent!</p>
-                  <p className="text-white/50 text-sm text-center">Thanks! I'll get back to you soon at Rhenmart978@gmail.com</p>
+                  <label htmlFor={id} className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                    {label}
+                  </label>
+                  <motion.input
+                    ref={ref as React.RefObject<HTMLInputElement>}
+                    type={type}
+                    id={id}
+                    name={name}
+                    autoComplete={autoComplete}
+                    onFocus={() => setFocused(id)}
+                    onBlur={(e) => handleBlur(id, e.target.value)}
+                    animate={{ borderColor: getBorderColor(id) }}
+                    className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white text-base placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF0000] transition-all"
+                    style={{ fontSize: '16px' }}
+                    placeholder={placeholder}
+                    required={required}
+                  />
                 </motion.div>
-              ) : error ? (
-                <motion.div
-                  key="error"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="flex flex-col items-center justify-center h-full py-16 gap-4"
-                >
-                  <AlertCircle size={56} className="text-red-400" />
-                  <p className="text-white text-xl font-bold">Failed to send</p>
-                  <p className="text-white/50 text-sm text-center">Please check your EmailJS setup or try again.</p>
-                </motion.div>
-              ) : (
-                <motion.form
-                  ref={formRef}
-                  key="form"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-5"
-                  onSubmit={handleSubmit}
-                >
-                  {[
-                    { id: "name", label: "Your Name", type: "text", placeholder: "John Doe", col: 1, ref: nameRef, name: "from_name" },
-                    { id: "email", label: "Your Email", type: "email", placeholder: "john@example.com", col: 1, ref: emailRef, name: "from_email" },
-                    { id: "subject", label: "Subject", type: "text", placeholder: "Project Inquiry", col: 2, ref: subjectRef, name: "subject" },
-                  ].map(({ id, label, type, placeholder, col, ref, name }) => (
-                    <motion.div
-                      key={id}
-                      initial={{ opacity: 0, y: 15 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-40px" }}
-                      className={`space-y-2 ${col === 2 ? "sm:col-span-2" : ""}`}
-                    >
-                      <label htmlFor={id} className="text-xs font-semibold text-white/50 uppercase tracking-wider">
-                        {label}
-                      </label>
-                      <motion.input
-                        ref={ref as React.RefObject<HTMLInputElement>}
-                        type={type}
-                        id={id}
-                        name={name}
-                        onFocus={() => setFocused(id)}
-                        onBlur={() => setFocused(null)}
-                        animate={{ borderColor: focused === id ? "#FF0000" : "rgba(255,255,255,0.1)" }}
-                        className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF0000] transition-all"
-                        placeholder={placeholder}
-                        required={id !== "subject"}
-                      />
-                    </motion.div>
-                  ))}
+              ))}
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-40px" }}
-                    className="space-y-2 sm:col-span-2"
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                className="space-y-2 sm:col-span-2"
+              >
+                <label htmlFor="message" className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                  Your Message
+                </label>
+                <motion.textarea
+                  ref={messageRef}
+                  id="message"
+                  name="message"
+                  rows={4}
+                  required
+                  autoComplete="off"
+                  onFocus={() => setFocused("message")}
+                  onBlur={(e) => handleBlur("message", e.target.value)}
+                  animate={{ borderColor: getBorderColor("message") }}
+                  className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF0000] transition-all resize-none"
+                  style={{ fontSize: '16px' }}
+                  placeholder="Tell me about your project..."
+                />
+              </motion.div>
+
+              <div className="sm:col-span-2 flex justify-end">
+                <MagneticButton>
+                  <motion.button
+                    type="submit"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.97 }}
+                    animate={shakeError ? { x: [0, -8, 8, -6, 6, 0] } : {}}
+                    transition={shakeError ? { duration: 0.4 } : { duration: 0.2 }}
+                    disabled={sending}
+                    className="group flex items-center gap-3 px-8 py-3.5 bg-[#FF0000] text-white font-semibold rounded-full hover:bg-red-700 hover:shadow-[0_0_25px_rgba(255,0,0,0.5)] transition-all duration-300 disabled:opacity-70 w-full sm:w-auto justify-center"
                   >
-                    <label htmlFor="message" className="text-xs font-semibold text-white/50 uppercase tracking-wider">
-                      Your Message
-                    </label>
-                    <motion.textarea
-                      ref={messageRef}
-                      id="message"
-                      name="message"
-                      rows={4}
-                      required
-                      onFocus={() => setFocused("message")}
-                      onBlur={() => setFocused(null)}
-                      animate={{ borderColor: focused === "message" ? "#FF0000" : "rgba(255,255,255,0.1)" }}
-                      className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF0000] transition-all resize-none"
-                      placeholder="Tell me about your project..."
-                    />
-                  </motion.div>
-
-                  <div className="sm:col-span-2 flex justify-end">
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.97 }}
-                      disabled={sending}
-                      className="group flex items-center gap-3 px-8 py-3.5 bg-[#FF0000] text-white font-semibold rounded-full hover:bg-red-700 hover:shadow-[0_0_25px_rgba(255,0,0,0.5)] transition-all duration-300 disabled:opacity-70 w-full sm:w-auto justify-center"
-                    >
-                      {sending ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                          />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          Send Message
-                          <motion.span
-                            animate={{ x: [0, 4, 0] }}
-                            transition={{ duration: 1.2, repeat: Infinity }}
-                          >
-                            <Send size={16} />
-                          </motion.span>
-                        </>
-                      )}
-                    </motion.button>
-                  </div>
-                </motion.form>
-              )}
-            </AnimatePresence>
+                    {sending ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                        />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Message
+                        <motion.span
+                          animate={{ x: [0, 4, 0] }}
+                          transition={{ duration: 1.2, repeat: Infinity }}
+                        >
+                          <Send size={16} />
+                        </motion.span>
+                      </>
+                    )}
+                  </motion.button>
+                </MagneticButton>
+              </div>
+            </form>
           </motion.div>
         </div>
       </div>

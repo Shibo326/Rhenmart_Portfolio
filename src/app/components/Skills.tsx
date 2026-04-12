@@ -1,10 +1,7 @@
 import { motion, useInView, useMotionValue, useTransform, animate } from "motion/react";
 import { useEffect, useRef, useState, memo } from "react";
 import { Brain, Wrench, Bot, Sparkles } from "lucide-react";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
 
 function Counter({ target, isInView }: { target: number; isInView: boolean }) {
   const count = useMotionValue(0);
@@ -22,6 +19,8 @@ function Counter({ target, isInView }: { target: number; isInView: boolean }) {
 const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, description }: {
   label: string; percentage: number; delay?: number; description?: string;
 }) {
+  const { enable3DTilt } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-30px" });
   const [hovered, setHovered] = useState(false);
@@ -159,6 +158,8 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
 });
 
 const ToolPill = memo(function ToolPill({ name, index }: { name: string; index: number }) {
+  const { enable3DTilt } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8, y: 8 }}
@@ -184,6 +185,8 @@ const tools = ["Figma", "Framer", "WIX Studio", "V0"];
 const aiTools = ["ChatGPT", "Gemini", "Claude", "Loveable"];
 
 export function Skills() {
+  const { enable3DTilt } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-60px" });
 
@@ -202,6 +205,7 @@ export function Skills() {
       {/* Floating particles — desktop non-Safari only */}
       {!reduceEffects && [0, 1, 2, 3, 4, 5].map((i) => (
         <motion.div key={i}
+          aria-hidden="true"
           animate={{ y: [0, -20, 0], opacity: [0, 0.25, 0] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.6 }}
           className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"

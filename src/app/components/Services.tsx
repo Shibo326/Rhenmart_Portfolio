@@ -1,10 +1,7 @@
 import { motion, useMotionValue, useTransform, useSpring } from "motion/react";
 import { Smartphone, Monitor, Search, Handshake, Sparkles, Zap } from "lucide-react";
 import { useRef, useState, memo } from "react";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
 
 const services = [
   { title: "UI Design", description: "Crafting visually compelling interfaces with strong layout systems, design tokens, and micro-animation details.", icon: Monitor, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]", number: "01" },
@@ -14,6 +11,8 @@ const services = [
 ];
 
 const ServiceCard = memo(function ServiceCard({ service, index }: { service: typeof services[0]; index: number }) {
+  const { enable3DTilt, isMobile } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   const ref = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -218,6 +217,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
 });
 
 export function Services() {
+  const { enable3DTilt, isMobile } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   return (
     <section id="services" className="py-28 bg-[#080808] relative overflow-hidden">
       {/* Animated grid — desktop non-Safari only */}
@@ -264,6 +265,7 @@ export function Services() {
       {/* Floating dots — desktop non-Safari only */}
       {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
         <motion.div key={i}
+          aria-hidden="true"
           animate={{ y: [0, -25, 0], opacity: [0, 0.35, 0], scale: [0.5, 1.1, 0.5] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.7 }}
           className="absolute w-1.5 h-1.5 bg-[#FF0000] rounded-full pointer-events-none"

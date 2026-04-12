@@ -17,11 +17,15 @@ export const ease = {
 
 // ─── Spring Configurations ──────────────────────────────────────────────────
 export const springs = {
-  bouncy: { type: "spring" as const, stiffness: 280, damping: 20 },
-  snappy: { type: "spring" as const, stiffness: 380, damping: 28 },
-  smooth: { type: "spring" as const, stiffness: 100, damping: 20 },
-  gentle: { type: "spring" as const, stiffness: 140, damping: 22 },
-  wobbly: { type: "spring" as const, stiffness: 180, damping: 12 },
+  bouncy:   { type: 'spring' as const, stiffness: 280, damping: 20 },
+  snappy:   { type: 'spring' as const, stiffness: 400, damping: 20 },   // CTA tap
+  smooth:   { type: 'spring' as const, stiffness: 100, damping: 20 },
+  gentle:   { type: 'spring' as const, stiffness: 140, damping: 22 },
+  wobbly:   { type: 'spring' as const, stiffness: 180, damping: 12 },
+  magnetic: { type: 'spring' as const, stiffness: 150, damping: 15 },   // MagneticButton
+  cursor:   { type: 'spring' as const, stiffness: 200, damping: 20 },   // CursorGlow
+  navActive:{ type: 'spring' as const, stiffness: 300, damping: 28 },   // Nav underline
+  scroll:   { stiffness: 200, damping: 40 },                            // ScrollProgressBar
 };
 
 // ─── Fade Animations ────────────────────────────────────────────────────────

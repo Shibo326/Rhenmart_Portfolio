@@ -32,21 +32,20 @@ export const detectDeviceCapability = () => {
   if (prefersReducedMotion) {
     tier = "low";
   } else if (isIOS) {
-    // iOS: always conservative regardless of device power
-    tier = cores >= 6 ? "medium" : "low";
+    // iOS: always low regardless of device power
+    tier = "low";
   } else if (isMobile) {
-    if (cores >= 8 && memory >= 6) tier = "high";
-    else if (cores >= 4 && memory >= 4) tier = "medium";
+    // Mobile Chrome: high-end (≥6 cores) → medium, otherwise low
+    if (cores >= 6) tier = "medium";
     else tier = "low";
-  } else if (isMacOS && isSafari) {
-    // macOS Safari: one tier lower due to compositing cost
-    if (cores >= 10 && memory >= 8) tier = "high";
-    else if (cores >= 6 && memory >= 4) tier = "medium";
+  } else if (isSafari) {
+    // Desktop Safari: always mid (never high)
+    if (cores >= 4) tier = "medium";
     else tier = "low";
   } else {
-    // Chrome/Firefox desktop
-    if (cores >= 8 && memory >= 8) tier = "high";
-    else if (cores >= 4 && memory >= 4) tier = "medium";
+    // Desktop Chrome/Edge/Firefox
+    if (cores >= 8 || (cores >= 4 && !isSafari)) tier = "high";
+    else if (cores >= 4) tier = "medium";
     else tier = "low";
   }
 
