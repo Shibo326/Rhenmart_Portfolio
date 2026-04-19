@@ -21,6 +21,10 @@ export function Footer() {
 
   return (
     <footer ref={ref} className="py-12 bg-[#030303] border-t border-white/5 relative overflow-hidden">
+      {/* HUD flicker — background only, not content */}
+      {!reduceEffects && (
+        <div className="absolute inset-0 pointer-events-none animate-hud-flicker opacity-30" />
+      )}
       {/* Top line */}
       <motion.div
         initial={{ scaleX: 0 }}
@@ -57,14 +61,18 @@ export function Footer() {
           initial={{ opacity: 0, y: 15 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
+          className="flex items-center gap-2"
         >
+          <motion.div animate={{ opacity:[1,0.3,1] }} transition={{ duration:1.5, repeat:Infinity }}
+            className="w-1.5 h-1.5 rounded-full bg-[#FF0000]" />
           <motion.span
             animate={reduceEffects ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 18px #FF0000", "0 0 0px #FF0000"] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="text-3xl font-black tracking-tighter text-[#FF0000]"
+            className="text-2xl font-black tracking-tighter text-[#FF0000] font-mono"
           >
-            RHEN.
+            RHEN<span className="text-white/30">_</span>
           </motion.span>
+          <span className="text-[9px] font-mono text-white/15 border border-white/10 px-1.5 py-0.5 rounded animate-border-pulse">DESIGNER_READY</span>
         </motion.div>
 
         {/* Nav links */}
@@ -75,7 +83,7 @@ export function Footer() {
               href={`#${name.toLowerCase()}`}
               initial={{ opacity: 0, y: 10 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.06, duration: 0.4 }}
+              transition={{ delay: i * 0.04, duration: 0.4 }}
               onClick={(e) => {
                 e.preventDefault();
                 const id = name.toLowerCase();
@@ -103,7 +111,7 @@ export function Footer() {
               rel="noopener noreferrer"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: 0.2 + i * 0.08, duration: 0.4 }}
+              transition={{ delay: i * 0.05, duration: 0.4 }}
               whileHover={reduceEffects ? {} : { scale: 1.15, rotate: 6 }}
               whileTap={{ scale: 0.9 }}
               className="p-3 bg-white/5 border border-white/10 rounded-full text-white/60 hover:text-white transition-colors duration-200"
@@ -140,7 +148,7 @@ export function Footer() {
               href={href}
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 0.4 + i * 0.1 }}
+              transition={{ delay: 0.1 + i * 0.06 }}
               className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm"
             >
               <span className="p-1.5 bg-white/5 rounded-full">
@@ -156,13 +164,18 @@ export function Footer() {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.6 }}
-          className="flex items-center gap-1.5 text-white/15 text-xs"
+          className="flex items-center gap-1.5 text-white/15 text-[10px] font-mono"
         >
-          <span>&copy; {year} Rhenmart Dela Cruz. Made with</span>
-          <Heart size={10} className="text-[#FF0000] fill-[#FF0000]" />
-          <span>All rights reserved.</span>
+          <span className="text-[#FF0000]/30">//</span>
+          <span>&copy; {year} RHENMART_DELACRUZ</span>
+          <span className="text-white/10">|</span>
+          <span>UX/UI_DESIGNER | PRODUCT_DESIGNER</span>
+          <span className="text-white/10">|</span>
+          <Heart size={9} className="text-[#FF0000]/60 fill-[#FF0000]/60" />
+          <span>ALL_RIGHTS_RESERVED</span>
         </motion.div>
       </div>
     </footer>
   );
 }
+

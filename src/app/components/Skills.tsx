@@ -1,6 +1,6 @@
 import { motion, useInView, useMotionValue, useTransform, animate } from "motion/react";
 import { useEffect, useRef, useState, memo } from "react";
-import { Brain, Wrench, Bot, Sparkles } from "lucide-react";
+import { Brain, Wrench, Bot, Sparkles, Code } from "lucide-react";
 import { useAnimationConfig } from "../context/AnimationContext";
 
 function Counter({ target, isInView }: { target: number; isInView: boolean }) {
@@ -22,7 +22,7 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
   const { enable3DTilt } = useAnimationConfig();
   const reduceEffects = !enable3DTilt;
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-30px" });
+  const isInView = useInView(ref, { once: true, margin: "-10px" });
   const [hovered, setHovered] = useState(false);
 
   const SIZE = 120;
@@ -157,20 +157,29 @@ const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, descri
   );
 });
 
-const ToolPill = memo(function ToolPill({ name, index }: { name: string; index: number }) {
+const ToolPill = memo(function ToolPill({ name, url, index, primary }: { name: string; url: string; index: number; primary?: boolean }) {
   const { enable3DTilt } = useAnimationConfig();
   const reduceEffects = !enable3DTilt;
   return (
-    <motion.div
+    <motion.a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
       initial={{ opacity: 0, scale: 0.8, y: 8 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.07, duration: 0.35 }}
       whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
-      className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8 transition-all duration-200 cursor-default"
+      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+        primary
+          ? "bg-[#FF0000]/15 border border-[#FF0000]/40 text-white hover:bg-[#FF0000]/25 hover:border-[#FF0000]/60"
+          : "bg-white/5 border border-white/10 text-white/70 hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8"
+      }`}
     >
+      {primary && <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />}
       {name}
-    </motion.div>
+      {primary && <span className="text-[#FF0000]/70 text-[9px] font-semibold uppercase tracking-wider ml-0.5">Primary</span>}
+    </motion.a>
   );
 });
 
@@ -181,14 +190,28 @@ const coreSkills = [
   { label: "AI-Assisted UX", percentage: 70, description: "ChatGPT & AI tools for research" },
 ];
 
-const tools = ["Figma", "Framer", "WIX Studio", "V0"];
-const aiTools = ["ChatGPT", "Gemini", "Claude", "Loveable"];
+const tools = [
+  { name: "Figma", url: "https://figma.com", primary: true },
+  { name: "Framer", url: "https://framer.com" },
+  { name: "WIX Studio", url: "https://wix.com/studio" },
+  { name: "V0", url: "https://v0.dev" },
+];
+const aiTools = [
+  { name: "ChatGPT", url: "https://chatgpt.com" },
+  { name: "Gemini", url: "https://gemini.google.com" },
+  { name: "Claude", url: "https://claude.ai" },
+  { name: "Loveable", url: "https://lovable.dev" },
+];
+const ideTools = [
+  { name: "Kiro", url: "https://kiro.dev", primary: true },
+  { name: "VS Code", url: "https://code.visualstudio.com" },
+];
 
 export function Skills() {
   const { enable3DTilt } = useAnimationConfig();
   const reduceEffects = !enable3DTilt;
   const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, margin: "-60px" });
+  const isInView = useInView(sectionRef, { once: true, margin: "-10px" });
 
   return (
     <section ref={sectionRef} className="py-24 bg-[#050505] relative overflow-hidden border-t border-white/5">
@@ -219,9 +242,12 @@ export function Skills() {
         <div>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.55 }} className="text-center mb-12 space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF0000]/10 border border-[#FF0000]/20 rounded-full">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/60 border border-[#FF0000]/20 rounded font-mono">
+              <motion.div animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
+                className="w-1.5 h-1.5 rounded-full bg-[#FF0000]" />
               <Brain size={12} className="text-[#FF0000]" />
-              <span className="text-[#FF0000] text-xs font-semibold uppercase tracking-widest">Core Skills</span>
+              <span className="text-[#FF0000] text-[10px] font-bold uppercase tracking-[0.2em]">SKILLS.EXE</span>
+              <span className="text-white/20 text-[10px]">// CORE_SKILLS</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">What I Bring to the Table</h2>
             <motion.div initial={{ scaleX: 0 }} animate={isInView ? { scaleX: 1 } : {}}
@@ -235,7 +261,7 @@ export function Skills() {
 
           {/* Quote with animated accents */}
           <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ delay: 0.7 }}
+            viewport={{ once: true }} transition={{ delay: 0.2 }}
             className="mt-10 max-w-2xl mx-auto text-center">
             <div className="relative px-6 py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl">
               {/* Animated accent lines — desktop non-Safari only */}
@@ -254,19 +280,18 @@ export function Skills() {
                 </>
               )}
               <p className="text-white/55 text-sm leading-relaxed italic">
-                "I combine user-centered design with AI-assisted research to create{" "}
-                <span className="text-white/85 font-medium not-italic">data-driven, efficient, and impactful</span>{" "}
-                digital experiences."
+                "I start with human research, validate with data, and use AI as a tool — not a shortcut — to design{" "}
+                <span className="text-white/85 font-medium not-italic">experiences that are intentional, accessible, and real.</span>"
               </p>
             </div>
           </motion.div>
         </div>
 
         {/* Tools & AI */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tools */}
           <motion.div initial={{ opacity: 0, x: -25 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.55 }}
+            viewport={{ once: true }} transition={{ duration: 0.4 }}
             className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
             <div className="relative z-10">
@@ -281,14 +306,14 @@ export function Skills() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {tools.map((t, i) => <ToolPill key={t} name={t} index={i} />)}
+                {tools.map((t, i) => <ToolPill key={t.name} name={t.name} url={t.url} index={i} primary={t.primary} />)}
               </div>
             </div>
           </motion.div>
 
           {/* AI Tools */}
-          <motion.div initial={{ opacity: 0, x: 25 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.1 }}
+          <motion.div initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.4, delay: 0.05 }}
             className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
             {/* Shimmer — desktop non-Safari only */}
             {!reduceEffects && (
@@ -319,22 +344,225 @@ export function Skills() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {aiTools.map((t, i) => (
-                  <motion.div key={t}
+                  <motion.a
+                    key={t.name}
+                    href={t.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.09 }}
                     whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
-                    className="px-4 py-2 bg-[#FF0000]/8 border border-[#FF0000]/20 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/50 hover:text-white hover:bg-[#FF0000]/15 transition-all duration-200 cursor-default flex items-center gap-1.5"
+                    className="px-4 py-2 bg-[#FF0000]/8 border border-[#FF0000]/20 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/50 hover:text-white hover:bg-[#FF0000]/15 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles size={9} className="text-[#FF0000]" />
-                    {t}
-                  </motion.div>
+                    {t.name}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* IDE Tools */}
+          <motion.div initial={{ opacity: 0, x: 25 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.4, delay: 0.1 }}
+            className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-5">
+                <motion.div whileHover={reduceEffects ? {} : { rotate: -18 }}
+                  className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
+                  <Code size={15} className="text-[#FF0000]" />
+                </motion.div>
+                <div>
+                  <h3 className="text-white font-bold text-sm">IDE</h3>
+                  <p className="text-white/35 text-xs">Code Editors</p>
+                </div>
+                <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                  className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                  <span className="text-blue-400 text-[9px] font-semibold uppercase tracking-wider">Main</span>
+                </motion.div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {ideTools.map((t, i) => (
+                  <motion.a
+                    key={t.name}
+                    href={t.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, scale: 0.8, y: 8 }}
+                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.09 }}
+                    whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                      t.primary
+                        ? "bg-[#FF0000]/15 border border-[#FF0000]/40 text-white hover:bg-[#FF0000]/25 hover:border-[#FF0000]/60"
+                        : "bg-white/5 border border-white/10 text-white/70 hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8"
+                    }`}
+                  >
+                    {t.primary && <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />}
+                    {t.name}
+                    {t.primary && <span className="text-[#FF0000]/70 text-[9px] font-semibold uppercase tracking-wider ml-0.5">Primary</span>}
+                  </motion.a>
                 ))}
               </div>
             </div>
           </motion.div>
         </div>
+
+        {/* Research-Driven Design Process — Game HUD Style */}
+        <div>
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.55 }}
+            className="text-center mb-10 space-y-3">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF0000]/10 border border-[#FF0000]/20 rounded-full">
+              <Sparkles size={12} className="text-[#FF0000]" />
+              <span className="text-[#FF0000] text-xs font-semibold uppercase tracking-widest">My Process</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Research-Driven Design Process</h2>
+            <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }} style={{ originX: 0.5 }}
+              className="w-12 h-[2px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mx-auto rounded-full" />
+          </motion.div>
+
+          {/* HUD Panel */}
+          <div className="relative w-full">
+
+            {/* Outer HUD frame */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative border border-[#FF0000]/20 rounded-2xl p-4 sm:p-6 lg:p-8 bg-black/40 overflow-hidden w-full"
+            >
+              {/* Corner brackets */}
+              {[
+                "top-0 left-0 border-t-2 border-l-2 rounded-tl-2xl",
+                "top-0 right-0 border-t-2 border-r-2 rounded-tr-2xl",
+                "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-2xl",
+                "bottom-0 right-0 border-b-2 border-r-2 rounded-br-2xl",
+              ].map((cls, i) => (
+                <div key={i} className={`absolute w-6 h-6 border-[#FF0000]/60 ${cls}`} />
+              ))}
+
+              {/* Scanline overlay */}
+              {!reduceEffects && (
+                <div
+                  className="absolute inset-0 pointer-events-none rounded-2xl opacity-[0.03]"
+                  style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 3px)", backgroundSize: "100% 3px" }}
+                />
+              )}
+
+              {/* HUD top bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-6 pb-3 border-b border-[#FF0000]/10">
+                <div className="flex items-center gap-2">
+                  <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-[#FF0000]" />
+                  <span className="text-[#FF0000] text-xs sm:text-sm font-mono font-bold uppercase tracking-[0.2em]">DESIGN_PROCESS.exe</span>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <span className="text-white/20 text-[10px] sm:text-xs font-mono">STEPS: 06/06</span>
+                  <span className="text-white/20 text-[10px] sm:text-xs font-mono hidden sm:block">STATUS: ACTIVE</span>
+                  <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }}
+                    className="text-green-400 text-[10px] sm:text-xs font-mono">■ ONLINE</motion.div>
+                </div>
+              </div>
+
+              {/* Step cards grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                {[
+                  { step: "01", code: "INIT", label: "Human Research", icon: "🔍", status: "COMPLETE", color: "green",
+                    desc: "Human-first investigation before any tool is opened.",
+                    bullets: ["User interviews & observation", "Reading papers & case studies", "Documenting all gathered insights", "Identifying pain points & patterns"] },
+                  { step: "02", code: "PROC", label: "AI Enhancement", icon: "🤖", status: "COMPLETE", color: "green",
+                    desc: "AI amplifies research — never replaces it.",
+                    bullets: ["Enhance & validate findings with AI", "UX & design architecture recommendations", "Competitive analysis support", "Synthesize large research into insights"] },
+                  { step: "03", code: "SYNC", label: "Stakeholder Sync", icon: "🤝", status: "COMPLETE", color: "green",
+                    desc: "Align with everyone before touching Figma.",
+                    bullets: ["Present findings to client", "Collaborate with dev team", "Identify what needs to change", "Agree on scope & priorities"] },
+                  { step: "04", code: "DSGN", label: "Figma Design", icon: "🎨", status: "ACTIVE", color: "red",
+                    desc: "Research-backed design, not guesswork.",
+                    bullets: ["Wireframes → hi-fi UI", "Component-based design system", "Interactive prototype flows", "Design decisions tied to research"] },
+                  { step: "05", code: "PLSH", label: "Kiro Polish", icon: "✨", status: "QUEUED", color: "yellow",
+                    desc: "Final quality pass before dev picks it up.",
+                    bullets: ["Import design file into Kiro", "Optimize & enhance visuals", "Polish micro-interactions & spacing", "Validate design before handoff"] },
+                  { step: "06", code: "HNDOFF", label: "Dev Handoff", icon: "🚀", status: "QUEUED", color: "yellow",
+                    desc: "Clean, documented, ready to build.",
+                    bullets: ["Annotated specs for developers", "Asset export & design tokens", "Support during implementation", "Feedback loop for adjustments"] },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.step}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.05, duration: 0.3 }}
+                    whileHover={reduceEffects ? {} : { scale: 1.02 }}
+                    className="relative group bg-white/[0.02] border border-white/[0.06] rounded-xl p-5 sm:p-6 hover:border-[#FF0000]/30 hover:bg-[#FF0000]/[0.03] transition-all duration-300 cursor-default overflow-hidden"
+                  >
+                    {/* Card corner accent */}
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[#FF0000]/30 rounded-tl-xl" />
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-[#FF0000]/30 rounded-br-xl" />
+
+                    {/* Top row: step code + status badge */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#FF0000]/50 text-xs sm:text-sm font-mono font-bold">[{item.step}]</span>
+                        <span className="text-white/20 text-xs sm:text-sm font-mono">{item.code}</span>
+                      </div>
+                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] sm:text-xs font-mono font-bold uppercase ${
+                        item.color === "green" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
+                        item.color === "red"   ? "bg-[#FF0000]/10 text-[#FF4444] border border-[#FF0000]/20" :
+                                                 "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
+                      }`}>
+                        <motion.span
+                          animate={item.color === "red" ? { opacity: [1, 0.3, 1] } : {}}
+                          transition={{ duration: 0.8, repeat: Infinity }}
+                          className="w-1.5 h-1.5 rounded-full bg-current"
+                        />
+                        {item.status}
+                      </div>
+                    </div>
+
+                    {/* Icon + label */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{item.icon}</span>
+                      <p className="text-white font-bold text-sm sm:text-base group-hover:text-[#FF4444] transition-colors duration-200 font-mono">{item.label}</p>
+                    </div>
+
+                    {/* Desc */}
+                    <p className="text-white/40 text-xs sm:text-sm leading-snug mb-3 font-mono">{item.desc}</p>
+
+                    {/* Divider */}
+                    <div className="w-full h-px bg-[#FF0000]/10 mb-3" />
+
+                    {/* Bullets */}
+                    <ul className="space-y-1.5">
+                      {item.bullets.map((b, bi) => (
+                        <li key={bi} className="flex items-start gap-2 text-white/40 text-xs sm:text-sm leading-snug font-mono">
+                          <span className="text-[#FF0000]/50 shrink-0 mt-0.5">▸</span>
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* HUD bottom bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-6 pt-3 border-t border-[#FF0000]/10">
+                <span className="text-white/20 text-xs sm:text-sm font-mono">RHENMART_DELACRUZ // UX/UI DESIGNER // PRODUCT DESIGNER</span>
+                <motion.span animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 2, repeat: Infinity }}
+                  className="text-[#FF0000]/50 text-xs sm:text-sm font-mono">DESIGNER_READY</motion.span>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
       </div>
     </section>
   );

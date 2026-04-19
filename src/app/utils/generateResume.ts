@@ -1,8 +1,9 @@
-import jsPDF from "jspdf";
 import cvImage from "../../Image/Cv ko.png";
 
-export function generateResume() {
+export async function generateResume() {
   try {
+    // Lazy-load jsPDF only when user clicks — saves 200KB+ on initial load
+    const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     doc.addImage(cvImage, "PNG", 0, 0, 210, 297);
     doc.save("Rhenmart_Dela_Cruz_Resume.pdf");

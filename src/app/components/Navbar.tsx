@@ -71,18 +71,23 @@ export function Navbar() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setIsOpen(false);
+    document.body.style.overflow = '';
 
-    if (href === "#home") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
+    const scrollToTarget = () => {
+      if (href === "#home") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      const target = document.querySelector(href);
+      if (target) {
+        const offset = 72;
+        const targetPosition = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: targetPosition, behavior: "smooth" });
+      }
+    };
 
-    const target = document.querySelector(href);
-    if (target) {
-      const offset = 80;
-      const targetPosition = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top: targetPosition, behavior: "smooth" });
-    }
+    // Small delay to let the menu close animation start before scrolling
+    setTimeout(scrollToTarget, 50);
   };
 
   return (
@@ -109,7 +114,7 @@ export function Navbar() {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
           scrolled
-            ? "bg-[#050505]/90 border-b border-white/8"
+            ? "bg-[#050505]/95 border-b border-[#FF0000]/10"
             : "bg-transparent border-b border-transparent"
         }`}
         style={scrolled && enableBackdropBlur ? { backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" } : {}}
@@ -117,20 +122,20 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="relative group">
+          <Link to="/" className="relative group flex items-center gap-2">
+            <motion.div
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-1.5 h-1.5 rounded-full bg-[#FF0000]"
+            />
             <motion.span
               animate={!enableBackdropBlur ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 12px #FF0000", "0 0 0px #FF0000"] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="text-xl sm:text-2xl font-black tracking-tighter text-[#FF0000]"
+              className="text-xl sm:text-2xl font-black tracking-tighter text-[#FF0000] font-mono"
             >
-              RHEN.
+              RHEN<span className="text-white/40">_</span>
             </motion.span>
-            <motion.span
-              initial={{ scaleX: 0 }}
-              whileHover={{ scaleX: 1 }}
-              style={{ originX: 0 }}
-              className="absolute -bottom-0.5 left-0 right-0 h-px bg-[#FF0000] rounded-full"
-            />
+            <span className="hidden sm:block text-[9px] font-mono text-white/20 uppercase tracking-widest border border-white/10 px-1.5 py-0.5 rounded">v2.0</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -168,9 +173,10 @@ export function Navbar() {
             whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,0,0,0.4)" }}
             whileTap={{ scale: 0.95 }}
             onClick={(e) => handleNavClick(e, "#contact")}
-            className="hidden md:block px-5 py-2 bg-[#FF0000] text-white text-sm font-bold rounded-full hover:bg-red-700 transition-colors duration-200"
+            className="hidden md:flex items-center gap-2 px-5 py-2 bg-[#FF0000]/10 border border-[#FF0000]/40 text-[#FF0000] text-xs font-mono font-bold rounded uppercase tracking-widest hover:bg-[#FF0000] hover:text-white transition-all duration-200"
           >
-            Hire Me
+            <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-current" />
+            HIRE_ME
           </motion.a>
 
           {/* Mobile toggle */}
@@ -208,9 +214,9 @@ export function Navbar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, duration: 0.25 }}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className="w-full text-center py-3 text-base font-medium text-white/60 hover:text-[#FF0000] transition-colors"
+                    className="w-full text-center py-3 text-sm font-mono font-bold text-white/50 hover:text-[#FF0000] transition-colors uppercase tracking-widest"
                   >
-                    {link.name}
+                    <span className="text-[#FF0000]/30 mr-2">//</span>{link.name}
                   </motion.a>
                 ))}
                 <motion.a
@@ -219,9 +225,10 @@ export function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                   onClick={(e) => handleNavClick(e, "#contact")}
-                  className="mt-2 px-8 py-3 bg-[#FF0000] text-white font-bold rounded-full w-4/5 text-center hover:bg-red-700 transition-colors"
+                  className="mt-3 flex items-center justify-center gap-2 px-8 py-3 bg-[#FF0000]/10 border border-[#FF0000]/40 text-[#FF0000] font-mono font-bold rounded text-xs w-4/5 uppercase tracking-widest hover:bg-[#FF0000] hover:text-white transition-all duration-200"
                 >
-                  Hire Me
+                  <motion.span animate={{ opacity:[1,0.3,1] }} transition={{ duration:1, repeat:Infinity }} className="w-1.5 h-1.5 rounded-full bg-current" />
+                  HIRE_ME
                 </motion.a>
               </div>
             </motion.div>

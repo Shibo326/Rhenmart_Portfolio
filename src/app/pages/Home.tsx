@@ -28,23 +28,23 @@ const ScrollProgressBar = memo(function ScrollProgressBar() {
 function makeSectionVariants(reduce: boolean) {
   return {
     services: {
-      initial: { opacity: 0, y: reduce ? 0 : 60 },
+      initial: { opacity: 0, y: reduce ? 0 : 30 },
       animate: { opacity: 1, y: 0 },
     },
     about: {
-      initial: { opacity: 0, x: reduce ? 0 : -40 },
+      initial: { opacity: 0, x: reduce ? 0 : -20 },
       animate: { opacity: 1, x: 0 },
     },
     skills: {
-      initial: { opacity: 0, scale: reduce ? 1 : 0.96 },
+      initial: { opacity: 0, scale: reduce ? 1 : 0.98 },
       animate: { opacity: 1, scale: 1 },
     },
     portfolio: {
-      initial: { opacity: 0, y: reduce ? 0 : 50, rotateX: reduce ? 0 : 4 },
+      initial: { opacity: 0, y: reduce ? 0 : 25, rotateX: reduce ? 0 : 2 },
       animate: { opacity: 1, y: 0, rotateX: 0 },
     },
     contact: {
-      initial: { opacity: 0, y: reduce ? 0 : 40 },
+      initial: { opacity: 0, y: reduce ? 0 : 20 },
       animate: { opacity: 1, y: 0 },
     },
   };
@@ -61,7 +61,7 @@ const RevealSection = memo(function RevealSection({ children, section }: { child
     const el = ref.current; if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.04, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.01, rootMargin: "0px 0px -20px 0px" }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -72,7 +72,7 @@ const RevealSection = memo(function RevealSection({ children, section }: { child
       ref={ref}
       initial={variant.initial}
       animate={visible ? variant.animate : {}}
-      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       style={section === 'portfolio' ? { perspective: "1200px" } : {}}
     >
       {children}
@@ -248,6 +248,8 @@ export function Home() {
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50 p-3.5 bg-[#FF0000]/15 border border-[#FF0000]/40 text-white rounded-full hover:bg-[#FF0000] transition-colors duration-300 group overflow-hidden"
             aria-label="Scroll to top"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           >
             <ChevronUp size={22} className="group-hover:animate-bounce" />
             {/* Animated gradient border — desktop only */}
