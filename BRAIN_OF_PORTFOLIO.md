@@ -145,6 +145,7 @@ src/
 - Section badge: `PROFILE.EXE // ABOUT_ME`
 - Heading: `ABOUT_ME` monospace
 - Bio: code block with line numbers `01 02 03`
+- Bio line 01: "Self-taught UI/UX Designer and **Bachelor of Science in Information Technology (BSIT)** student from the Philippines..."
 - CTAs: `HIRE_ME` + `DL_RESUME.PDF`
 
 ### Services
@@ -161,6 +162,7 @@ src/
   - AI Tools: ChatGPT, Gemini, Claude, Loveable (all clickable links)
   - IDE: Kiro (PRIMARY), VS Code (all clickable links)
   - Collaboration: GitHub, Microsoft Teams, Google Meet, Zoom (all clickable links)
+- Tool cards now in **2×2 grid** (4 cards total)
 - Workflow HUD: `DESIGN_PROCESS.exe` — 6 step cards (see Section 8)
 
 ### Portfolio
@@ -378,9 +380,12 @@ import { motion, AnimatePresence, useScroll } from "motion/react";
 
 ## 13. DEPLOYMENT
 - Build: `npm run build`
-- Output: `dist/`
+- Output: `dist/` (**gitignored** — Vercel builds on their end)
 - Host: Vercel (Analytics already integrated via `@vercel/analytics/react`)
 - Assets: Vite handles chunking and optimization
+- `vercel.json` — CDN cache headers: assets cached 1 year (`max-age=31536000, immutable`), `index.html` no-cache
+- Chunk strategy: react-vendor, motion, router, icons, emailjs, pdf-vendor (lazy), mui-vendor, radix-vendor, charts-vendor all split separately
+- jsPDF + html2canvas in `pdf-vendor` chunk — only loads when user clicks Download Resume
 
 ---
 
@@ -422,3 +427,5 @@ When Kiro reads this file, it should:
 ---
 
 *Last updated: April 2026 · RHENMART_DELACRUZ // UX/UI DESIGNER // PRODUCT DESIGNER · DESIGNER_READY*
+
+> **Session log (April 2026):** Fixed BSIT bio, added Collaboration Tools card, performance chunk splitting + CDN cache headers, gitignored dist/, fixed Portfolio modal via React Portal (overflow-hidden clipping issue), X-button-only close, body scroll lock, back-to-top hidden when modal open.
