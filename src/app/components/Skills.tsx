@@ -1,6 +1,6 @@
 import { motion, useInView, useMotionValue, useTransform, animate } from "motion/react";
 import { useEffect, useRef, useState, memo } from "react";
-import { Brain, Wrench, Bot, Sparkles, Code } from "lucide-react";
+import { Brain, Wrench, Bot, Sparkles, Code, Users } from "lucide-react";
 import { useAnimationConfig } from "../context/AnimationContext";
 
 function Counter({ target, isInView }: { target: number; isInView: boolean }) {
@@ -206,6 +206,12 @@ const ideTools = [
   { name: "Kiro", url: "https://kiro.dev", primary: true },
   { name: "VS Code", url: "https://code.visualstudio.com" },
 ];
+const collabTools = [
+  { name: "GitHub", url: "https://github.com" },
+  { name: "Microsoft Teams", url: "https://teams.microsoft.com" },
+  { name: "Google Meet", url: "https://meet.google.com" },
+  { name: "Zoom", url: "https://zoom.us" },
+];
 
 export function Skills() {
   const { enable3DTilt } = useAnimationConfig();
@@ -288,7 +294,7 @@ export function Skills() {
         </div>
 
         {/* Tools & AI */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Tools */}
           <motion.div initial={{ opacity: 0, x: -25 }} whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }} transition={{ duration: 0.4 }}
@@ -406,6 +412,59 @@ export function Skills() {
                     {t.primary && <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />}
                     {t.name}
                     {t.primary && <span className="text-[#FF0000]/70 text-[9px] font-semibold uppercase tracking-wider ml-0.5">Primary</span>}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Collaboration Tools */}
+          <motion.div initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.4, delay: 0.15 }}
+            className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
+            {/* Shimmer — desktop non-Safari only */}
+            {!reduceEffects && (
+              <motion.div
+                animate={{ x: ["-100%", "200%"] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 3 }}
+                className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-[#FF0000]/5 to-transparent skew-x-12 pointer-events-none"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-5">
+                <motion.div
+                  animate={reduceEffects ? {} : { rotate: [0, 8, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
+                  <Users size={15} className="text-[#FF0000]" />
+                </motion.div>
+                <div>
+                  <h3 className="text-white font-bold text-sm">Collaboration</h3>
+                  <p className="text-white/35 text-xs">Handoff & Communication</p>
+                </div>
+                <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                  className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
+                  <span className="text-purple-400 text-[9px] font-semibold uppercase tracking-wider">Collab</span>
+                </motion.div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {collabTools.map((t, i) => (
+                  <motion.a
+                    key={t.name}
+                    href={t.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, scale: 0.8, y: 8 }}
+                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
+                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span className="w-1.5 h-1.5 bg-purple-400/60 rounded-full" />
+                    {t.name}
                   </motion.a>
                 ))}
               </div>

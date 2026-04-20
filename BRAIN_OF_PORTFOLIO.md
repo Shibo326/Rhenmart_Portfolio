@@ -160,6 +160,7 @@ src/
   - Tools I Use: Figma (PRIMARY), Framer, WIX Studio, V0
   - AI Tools: ChatGPT, Gemini, Claude, Loveable (all clickable links)
   - IDE: Kiro (PRIMARY), VS Code (all clickable links)
+  - Collaboration: GitHub, Microsoft Teams, Google Meet, Zoom (all clickable links)
 - Workflow HUD: `DESIGN_PROCESS.exe` — 6 step cards (see Section 8)
 
 ### Portfolio
@@ -295,6 +296,14 @@ import { motion, AnimatePresence, useScroll } from "motion/react";
 |------|---------|-----|
 | Kiro | ✅ PRIMARY | https://kiro.dev |
 | VS Code | — | https://code.visualstudio.com |
+
+### Collaboration Tools — Collab badge
+| Tool | URL |
+|------|-----|
+| GitHub | https://github.com |
+| Microsoft Teams | https://teams.microsoft.com |
+| Google Meet | https://meet.google.com |
+| Zoom | https://zoom.us |
 
 ### Core Skill Rings
 | Skill | % | Description |
