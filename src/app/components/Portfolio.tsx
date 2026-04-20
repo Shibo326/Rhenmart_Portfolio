@@ -445,82 +445,119 @@ export function Portfolio() {
           const cfg = categoryConfig[selectedItem.category];
           return (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9999] bg-black/90"
-              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+              key="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 9999,
+                backgroundColor: 'rgba(0,0,0,0.92)',
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch' as never,
+              }}
               role="dialog"
               aria-modal="true"
-              aria-label={selectedItem.title}
             >
-              {/* No backdrop tap-to-close — X button only */}
-              <div className="absolute inset-0" />
-
-              {/* Scrollable container */}
-              <div
-                className="absolute inset-0 overflow-y-auto overscroll-contain"
-                style={{ WebkitOverflowScrolling: 'touch' }}
+              <motion.div
+                key="modal-card"
+                initial={{ opacity: 0, y: 60 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 60 }}
+                transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: 'relative',
+                  margin: '20px auto',
+                  width: 'calc(100% - 32px)',
+                  maxWidth: '900px',
+                  backgroundColor: '#0c0c0c',
+                  borderRadius: '24px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  overflow: 'hidden',
+                  boxShadow: `0 0 60px ${cfg.glow}`,
+                }}
               >
-                <div className="min-h-full flex items-center justify-center p-4 sm:p-10">
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0, y: 40 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.9, opacity: 0, y: 40 }}
-                    transition={{ type: "spring", damping: 28, stiffness: 280 }}
-                    onClick={e => e.stopPropagation()}
-                    className="w-full max-w-4xl bg-[#0c0c0c] rounded-3xl border border-white/8 overflow-hidden flex flex-col md:flex-row relative"
-                    style={{ boxShadow: `0 0 60px ${cfg.glow}` }}
-                  >
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setSelectedId(null)}
-                      aria-label="Close"
-                      className="absolute top-4 right-4 z-20 p-2 bg-white/8 text-white rounded-full">
-                      <X size={16} />
-                    </motion.button>
+                {/* X Close button */}
+                <button
+                  onClick={() => setSelectedId(null)}
+                  aria-label="Close"
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    zIndex: 20,
+                    padding: '8px',
+                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    color: 'white',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <X size={16} />
+                </button>
 
-                    {/* Image */}
-                    <div className="w-full md:w-2/5 h-52 md:h-auto relative flex-shrink-0 overflow-hidden">
-                      <motion.img src={selectedItem.image} alt={selectedItem.title}
-                        initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.6 }}
-                        loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0c0c0c] hidden md:block" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] to-transparent block md:hidden" />
-                      <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
-                        {selectedItem.category}
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col gap-5">
-                      <div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{selectedItem.title}</h3>
-                        <div className="flex items-center gap-2">
-                          <Layers size={13} className="text-white/30" />
-                          <span className="text-white/35 text-sm">{selectedItem.role}</span>
-                        </div>
-                      </div>
-                      <div className="h-px bg-gradient-to-r from-white/10 to-transparent" />
-                      {[
-                        { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
-                        { icon: Code, label: "Solution", text: selectedItem.solution },
-                        { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
-                      ].map(({ icon: Icon, label, text, highlight }) => (
-                        <div key={label}>
-                          <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
-                            <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>
-                              <Icon size={13} style={{ color: cfg.dot }} />
-                            </span>
-                            {label}
-                          </h4>
-                          <div className={`text-sm leading-relaxed space-y-1.5 ${highlight ? "p-4 rounded-xl border" : ""}`}
-                            style={highlight ? { backgroundColor: `${cfg.dot}10`, borderColor: `${cfg.dot}25`, color: `${cfg.dot}CC` } : { color: "rgba(255,255,255,0.5)" }}>
-                            {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
+                {/* Image */}
+                <div style={{ width: '100%', height: '220px', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+                  <img
+                    src={selectedItem.image}
+                    alt={selectedItem.title}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0c0c0c, transparent)' }} />
+                  <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                    {selectedItem.category}
+                  </div>
                 </div>
-              </div>
+
+                {/* Content */}
+                <div style={{ padding: '24px' }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: 'white', marginBottom: '8px', lineHeight: 1.3 }}>
+                    {selectedItem.title}
+                  </h3>
+                  <div className="flex items-center gap-2 mb-5">
+                    <Layers size={13} className="text-white/30" />
+                    <span className="text-white/35 text-sm">{selectedItem.role}</span>
+                  </div>
+
+                  <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)', marginBottom: '20px' }} />
+
+                  {[
+                    { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
+                    { icon: Code, label: "Solution", text: selectedItem.solution },
+                    { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
+                  ].map(({ icon: Icon, label, text, highlight }) => (
+                    <div key={label} style={{ marginBottom: '20px' }}>
+                      <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
+                        <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>
+                          <Icon size={13} style={{ color: cfg.dot }} />
+                        </span>
+                        {label}
+                      </h4>
+                      <div
+                        className="text-sm leading-relaxed space-y-1.5"
+                        style={highlight
+                          ? { backgroundColor: `${cfg.dot}10`, borderColor: `${cfg.dot}25`, color: `${cfg.dot}CC`, padding: '16px', borderRadius: '12px', border: `1px solid ${cfg.dot}25` }
+                          : { color: 'rgba(255,255,255,0.5)' }
+                        }
+                      >
+                        {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             </motion.div>
           );
         })()}
