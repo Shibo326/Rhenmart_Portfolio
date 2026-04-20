@@ -167,13 +167,23 @@ export function Portfolio() {
   const [activeTab, setActiveTab] = useState<Category>("All");
   const [showAll, setShowAll] = useState(false);
   const touchStartY = useRef(0);
+  const touchingModal = useRef(false);
 
-  // Close modal on Escape key
+  // Close modal on Escape key + lock body scroll on mobile
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  useEffect(() => {
+    if (selectedId) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [selectedId]);
   const selectedItem = portfolioItems.find(i => i.id === selectedId);
   const filtered = activeTab === "All" ? portfolioItems : portfolioItems.filter(i => i.category === activeTab);
   const displayedItems = showAll ? filtered : filtered.slice(0, 9);
@@ -437,9 +447,17 @@ export function Portfolio() {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
               onClick={() => setSelectedId(null)}
-              onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY; }}
-              onTouchEnd={(e) => { if (e.changedTouches[0].clientY - touchStartY.current > 60) setSelectedId(null); }}
-              className="fixed inset-0 z-[100] bg-black/90 flex items-start sm:items-center justify-center p-3 sm:p-10 overflow-y-auto"
+              onTouchStart={(e) => {
+                touchStartY.current = e.touches[0].clientY;
+                touchingModal.current = false;
+              }}
+              onTouchEnd={(e) => {
+                // Only swipe-to-close if not touching inside the modal content
+                if (!touchingModal.current && e.changedTouches[0].clientY - touchStartY.current > 80) {
+                  setSelectedId(null);
+                }
+              }}
+              className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 sm:p-10 overflow-y-auto"
               role="dialog"
               aria-modal="true"
               aria-label={selectedItem.title}
@@ -450,6 +468,7 @@ export function Portfolio() {
                 exit={{ scale: 0.9, opacity: 0, y: 40 }}
                 transition={{ type: "spring", damping: 28, stiffness: 280 }}
                 onClick={e => e.stopPropagation()}
+                onTouchStart={() => { touchingModal.current = true; }}
                 className="w-full max-w-4xl bg-[#0c0c0c] rounded-3xl border border-white/8 overflow-hidden flex flex-col md:flex-row relative my-auto"
                 style={{ boxShadow: `0 0 60px ${cfg.glow}` }}
               >
