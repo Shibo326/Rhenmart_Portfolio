@@ -93,3 +93,21 @@ a, button {
   background: transparent !important;
   filter: none !important;
 }
+
+/* ── iOS Safe Area Support ── */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Focus visible — keyboard navigation ── */
+:focus-visible {
+  outline: 2px solid #FF0000;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Prevent text size adjustment on iOS rotation ── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

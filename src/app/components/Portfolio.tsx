@@ -1,5 +1,6 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, type Variants } from "motion/react";
-import { useState, useRef, useCallback, memo } from "react";
+import { useState, useRef, useCallback, memo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, ExternalLink, Code, Trophy, Layers, Filter } from "lucide-react";
 import champImg from "../../Image/umak champ.jpg";
 import ndcImg from "../../Image/ndc_startup.jpeg";
@@ -8,10 +9,8 @@ import tagisan2 from "../../Image/Tagisan ng talino second placer.jpg";
 import uxphImg from "../../Image/UXPH SEMINAR.jpeg";
 import beyondUiImg from "../../Image/Beyond ui.jpg";
 import exploringFigmaImg from "../../Image/Exploring The basics of figma.jpg";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import collaboratechImg from "../../Image/Collaboratech2026AndroidhACK.jpg";
+import { useAnimationConfig } from "../context/AnimationContext";
 
 type Category = "All" | "Competition" | "Workshop" | "Seminar" | "Case Studies";
 
@@ -20,6 +19,7 @@ const portfolioItems = [
   { id: 2, title: "NDC's Breaking Enigma 2025", role: "Product Designer", category: "Competition" as Category, image: ndcImg, challenge: "Build a concept-to-prototype in 4 days.\nAddress a real community problem.\nWork under Technology Track pressure.", solution: "Conceptualized SafePath — an offline GPS SOS app.\nUsers ping location to authorities without internet.\nDivided tasks strategically for rapid delivery.", impact: "Gained invaluable experience and industry connections.\nReceived guidance from professionals throughout.\nStrengthened teamwork, skills, and design thinking." },
   { id: 3, title: "Tagisan ng Talino — 1st Place", role: "UI/UX Designer", category: "Competition" as Category, image: tagisan1, challenge: "Compete in a fast-paced academic design challenge.\nTest UX knowledge under time pressure.\nOutperform peers with accuracy and speed.", solution: "Applied strong UX principles and design theory.\nLeveraged prior competition experience to stay focused.\nAnswered challenges efficiently and confidently.", impact: "Achieved 1st Place in the competition.\nDemonstrated mastery of UI/UX best practices.\nBuilt a strong competitive track record." },
   { id: 4, title: "Tagisan ng Talino — 2nd Place", role: "UI/UX Designer", category: "Competition" as Category, image: tagisan2, challenge: "Multi-round design competition with high stakes.\nRequires both theory and practical UX application.\nCollaborate and perform under pressure.", solution: "Prioritized accuracy and speed each round.\nCollaborated with teammates to cover all areas.\nMaintained consistency across every challenge.", impact: "Secured 2nd Place overall.\nReinforced consistent performance across competitions.\nProven ability to compete at an academic level." },
+  { id: 8, title: "Collaboratech 2026 — Android Hackathon", role: "Product Designer & UI Strategist", category: "Competition" as Category, image: collaboratechImg, challenge: "Build a fully working Android application in just 6 hours.\nSolve a real-world problem based on a given niche.\nDeliver a complete, functional product under extreme time pressure.", solution: "Used pen-and-paper rapid prototyping to map user flows and system structure — eliminating design bottlenecks before touching any tool.\nAligned every design decision to the team's technical skill set, reducing back-end complexity and accelerating development.\nActed as the bridge between design intent and engineering execution, ensuring zero miscommunication during the sprint.", impact: "2nd Place — Collaboratech 2026 Android Hackathon.\nBuilt and shipped 'ShopLift' — an online high-discount store app — within the 6-hour window.\nDemonstrated that strategic design thinking and team alignment can outperform raw technical speed." },
   { id: 5, title: "UXPH Community Seminar", role: "Attendee / UX Learner", category: "Seminar" as Category, image: uxphImg, challenge: "Stay current with the evolving PH UX landscape.\nConnect with industry professionals and designers.\nAbsorb real-world insights beyond the classroom.", solution: "Attended talks, workshops, and networking sessions.\nGained insights on design systems and research methods.\nEngaged with UXPH — a leading PH design community.", impact: "Expanded professional network significantly.\nDeepened understanding of human-centered design.\nGained real-world industry knowledge and perspective." },
   { id: 6, title: "Exploring The Basics of Figma", role: "Workshop Teacher / UI/UX Facilitator", category: "Workshop" as Category, image: exploringFigmaImg, challenge: "Teach Figma to complete beginners from scratch.\nCover components, frames, and basic prototyping.\nKeep the session engaging and hands-on.", solution: "Led a live demo of Figma's core tools step-by-step.\nWalked students through building a real UI screen.\nFacilitated a group activity to apply the learning.", impact: "Students built their first Figma prototype.\nConfidence and interest in UI/UX visibly increased.\nSparked career curiosity in design among participants." },
   { id: 7, title: "Beyond UI: Designing User Experiences", role: "Workshop Teacher / UI/UX Facilitator", category: "Workshop" as Category, image: beyondUiImg, challenge: "Shift students' mindset beyond visual design.\nTeach UX thinking, flows, and interaction design.\nMake abstract concepts tangible and applicable.", solution: "Covered user research, wireframing, and prototyping.\nUsed live Figma demos and guided exercises.\nStructured content around real-world UX principles.", impact: "Students gained a solid UX foundation.\nSeveral expressed interest in pursuing design careers.\nInspired a new generation of user-centered thinkers." },
@@ -46,13 +46,15 @@ const mobileCardVariants: Variants = {
     scale: 1,
     transition: {
       type: "spring",
-      bounce: 0.3,
-      duration: 0.8,
+      bounce: 0.2,
+      duration: 0.5,
     },
   },
 };
 
 const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { item: typeof portfolioItems[0]; index: number; onClick: () => void }) {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const ref = useRef<HTMLDivElement>(null);
   const mx = useMotionValue(0), my = useMotionValue(0);
   const rx = useSpring(useTransform(my, [-60, 60], [4, -4]), { stiffness: 200, damping: 28 });
@@ -160,17 +162,47 @@ const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { it
 });
 
 export function Portfolio() {
+  const { isMobile, isSafari } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari;
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<Category>("All");
   const [showAll, setShowAll] = useState(false);
+
+  // Close modal on Escape key + lock body scroll on mobile
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    if (selectedId) {
+      document.body.style.overflow = 'hidden';
+      window.dispatchEvent(new Event('portfolio-modal-open'));
+    } else {
+      document.body.style.overflow = '';
+      window.dispatchEvent(new Event('portfolio-modal-close'));
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [selectedId]);
   const selectedItem = portfolioItems.find(i => i.id === selectedId);
   const filtered = activeTab === "All" ? portfolioItems : portfolioItems.filter(i => i.category === activeTab);
   const displayedItems = showAll ? filtered : filtered.slice(0, 9);
   const hasMore = filtered.length > 9;
   const counts = TABS.reduce((a, t) => ({ ...a, [t]: t === "All" ? portfolioItems.length : portfolioItems.filter(i => i.category === t).length }), {} as Record<string, number>);
 
+  const handleTabClick = (tab: Category) => {
+    setActiveTab(tab);
+    setShowAll(false);
+    // Scroll to top of portfolio grid
+    setTimeout(() => {
+      document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
   return (
-    <section id="portfolio" className="py-24 bg-[#080808] relative overflow-hidden">
+    <>
+    <section id="portfolio" className="pt-20 pb-24 bg-[#080808] relative overflow-hidden">
       {/* Static grid */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{ backgroundImage: "linear-gradient(rgba(255,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
@@ -191,10 +223,11 @@ export function Portfolio() {
         {/* Header */}
         <div className="text-center mb-10 space-y-4">
           <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF0000]/10 border border-[#FF0000]/20 rounded-full">
-            <motion.span animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 2, repeat: Infinity }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/60 border border-[#FF0000]/20 rounded font-mono">
+            <motion.span animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
               className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
-            <span className="text-[#FF0000] text-xs font-semibold uppercase tracking-widest">My Work</span>
+            <span className="text-[#FF0000] text-[10px] font-bold uppercase tracking-[0.2em]">PORTFOLIO.EXE</span>
+            <span className="text-white/20 text-[10px] font-mono">// MY_WORK</span>
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="text-4xl md:text-5xl font-bold text-white tracking-tight">
@@ -205,26 +238,22 @@ export function Portfolio() {
             className="w-10 h-[2px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mx-auto rounded-full" />
         </div>
 
-        {/* Stats - Redesigned Grid Layout */}
+        {/* Stats - HUD Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-10 max-w-5xl mx-auto">
-          {/* Row 1: Projects, Competitions, Workshops */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }} 
             transition={{ delay: 0, type: "spring", stiffness: 200 }}
-            className="flex flex-col justify-center items-center p-8 bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/[0.12] rounded-3xl relative overflow-hidden group hover:border-[#FF0000]/30 transition-all duration-500"
+            className="flex flex-col justify-center items-center p-8 bg-black/40 border border-[#FF0000]/20 rounded relative overflow-hidden group hover:border-[#FF0000]/40 transition-all duration-500"
           >
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-            />
-            <span className="text-6xl sm:text-7xl font-black bg-gradient-to-br from-[#FF0000] to-[#FF4444] bg-clip-text text-transparent relative z-10">7</span>
-            <span className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] mt-2 relative z-10">Total Projects</span>
-            <motion.div 
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute top-5 right-5 w-1.5 h-1.5 bg-[#FF0000] rounded-full"
-            />
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FF0000]/50" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FF0000]/50" />
+            <span className="text-[9px] font-mono text-[#FF0000]/40 uppercase tracking-widest mb-1">[TOTAL]</span>
+            <span className="text-6xl sm:text-7xl font-black bg-gradient-to-br from-[#FF0000] to-[#FF4444] bg-clip-text text-transparent font-mono relative z-10">8</span>
+            <span className="text-white/40 text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] mt-2">TOTAL_PROJECTS</span>
+            <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}
+              className="absolute top-4 right-4 w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
           </motion.div>
 
           <motion.div 
@@ -232,10 +261,13 @@ export function Portfolio() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }} 
             transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
           >
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">4</span>
-            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Competitions</span>
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
+            <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[COMP]</span>
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">5</span>
+            <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">COMPETITIONS</span>
           </motion.div>
 
           <motion.div 
@@ -243,34 +275,44 @@ export function Portfolio() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }} 
             transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
-            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
           >
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">2</span>
-            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Workshops</span>
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
+            <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[WKSP]</span>
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">2</span>
+            <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">WORKSHOPS</span>
           </motion.div>
 
-          {/* Row 2: Seminar and Case Studies - Spanning wider */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }} 
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="sm:col-span-1 flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
+            className="sm:col-span-3 flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
           >
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">1</span>
-            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Seminar</span>
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
+            <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[SEM]</span>
+            <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">1</span>
+            <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">SEMINAR</span>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} 
-            transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
-            className="sm:col-span-2 flex flex-col justify-center items-center p-6 sm:p-8 bg-white/[0.04] border border-white/[0.08] rounded-3xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-300"
-          >
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000]">0</span>
-            <span className="text-white/40 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] mt-2">Case Studies</span>
-          </motion.div>
+          {counts['Case Studies'] > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }} 
+              transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
+              className="sm:col-span-2 flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
+            >
+              <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
+              <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[CASE]</span>
+              <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">{counts['Case Studies']}</span>
+              <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">CASE_STUDIES</span>
+            </motion.div>
+          )}
         </div>
 
         {/* Filter Tabs */}
@@ -285,16 +327,16 @@ export function Portfolio() {
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#080808] to-transparent pointer-events-none z-10" />
           
           <div className="flex items-center gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide scroll-smooth">
-            <div className="flex items-center gap-1.5 text-white/25 text-xs mr-1 flex-shrink-0">
-              <Filter size={11} /> Filter
+            <div className="flex items-center gap-1.5 text-white/25 text-xs mr-1 flex-shrink-0 font-mono">
+              <Filter size={11} /> FILTER_BY:
             </div>
             {TABS.map(tab => {
               const active = activeTab === tab;
               const cfg = tab !== "All" ? categoryConfig[tab] : null;
               return (
-                <motion.button key={tab} onClick={() => { setActiveTab(tab); setShowAll(false); }}
+                <motion.button key={tab} onClick={() => handleTabClick(tab)}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${active ? `${cfg?.bg ?? "bg-white"} ${cfg?.text ?? "text-black"} border-transparent shadow-lg` : "bg-white/5 text-white/40 border-white/10 hover:text-white/70 hover:border-white/20"}`}>
+                  className={`flex-shrink-0 px-4 py-1.5 rounded text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 border ${active ? `${cfg?.bg ?? "bg-white"} ${cfg?.text ?? "text-black"} border-transparent shadow-lg` : "bg-black/40 text-white/40 border-white/10 hover:text-white/70 hover:border-[#FF0000]/20"}`}>
                   {tab}
                   <span className={`ml-1.5 text-[10px] ${active ? "opacity-60" : "opacity-35"}`}>{counts[tab]}</span>
                 </motion.button>
@@ -309,9 +351,9 @@ export function Portfolio() {
               transition={{ duration: 2, repeat: Infinity }}
               className="flex items-center justify-center gap-1 mt-2 text-white/20 text-[10px]"
             >
-              <span>←</span>
-              <span>Swipe to see more</span>
-              <span>→</span>
+              <span className="text-[#FF0000]/50">←</span>
+              <span className="font-mono text-[10px] uppercase tracking-widest">SWIPE_TO_FILTER</span>
+              <span className="text-[#FF0000]/50">→</span>
             </motion.div>
           )}
         </motion.div>
@@ -324,13 +366,26 @@ export function Portfolio() {
           ))}
         </div>
 
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-20 gap-3 text-center"
+          >
+            <span className="text-4xl">🎨</span>
+            <p className="text-white/40 text-sm font-medium">No projects in this category yet.</p>
+            <p className="text-white/20 text-xs">Check back soon — more work is on the way.</p>
+          </motion.div>
+        )}
+
         {/* See More Button */}
         {hasMore && !showAll && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.1 }}
             className="flex justify-center mt-10"
           >
             <motion.button
@@ -386,67 +441,96 @@ export function Portfolio() {
         )}
       </div>
 
-      {/* Modal */}
+    </section>
+
+    {/* Modal — rendered via portal OUTSIDE section to avoid overflow-hidden clipping */}
+    {createPortal(
       <AnimatePresence>
         {selectedId && selectedItem && (() => {
           const cfg = categoryConfig[selectedItem.category];
           return (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              onClick={() => setSelectedId(null)}
-              className="fixed inset-0 z-[100] bg-black/90 flex items-start sm:items-center justify-center p-3 sm:p-10 overflow-y-auto"
+              key="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 9999,
+                backgroundColor: 'rgba(0,0,0,0.92)',
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch' as never,
+              }}
+              role="dialog"
+              aria-modal="true"
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 40 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                key="modal-card"
+                initial={{ opacity: 0, y: 60 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 60 }}
                 transition={{ type: "spring", damping: 28, stiffness: 280 }}
                 onClick={e => e.stopPropagation()}
-                className="w-full max-w-4xl bg-[#0c0c0c] rounded-3xl border border-white/8 overflow-hidden flex flex-col md:flex-row relative my-auto"
-                style={{ boxShadow: `0 0 60px ${cfg.glow}` }}
+                style={{
+                  position: 'relative',
+                  margin: '20px auto',
+                  width: 'calc(100% - 32px)',
+                  maxWidth: '900px',
+                  backgroundColor: '#0c0c0c',
+                  borderRadius: '24px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  overflow: 'hidden',
+                  boxShadow: `0 0 60px ${cfg.glow}`,
+                }}
               >
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setSelectedId(null)}
-                  className="absolute top-4 right-4 z-20 p-2 bg-white/8 text-white rounded-full">
+                <button
+                  onClick={() => setSelectedId(null)}
+                  aria-label="Close"
+                  style={{
+                    position: 'absolute', top: '16px', right: '16px', zIndex: 20,
+                    padding: '8px', backgroundColor: 'rgba(255,255,255,0.08)',
+                    border: 'none', borderRadius: '50%', color: 'white',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
                   <X size={16} />
-                </motion.button>
-
-                {/* Image */}
-                <div className="w-full md:w-2/5 h-52 md:h-auto relative flex-shrink-0 overflow-hidden">
-                  <motion.img src={selectedItem.image} alt={selectedItem.title}
-                    initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.6 }}
-                    loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0c0c0c] hidden md:block" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] to-transparent block md:hidden" />
+                </button>
+                <div style={{ width: '100%', height: '220px', position: 'relative', overflow: 'hidden' }}>
+                  <img src={selectedItem.image} alt={selectedItem.title} loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0c0c0c, transparent)' }} />
                   <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
-                    {selectedItem.category}
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />{selectedItem.category}
                   </div>
                 </div>
-
-                {/* Content */}
-                <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col gap-5 max-h-[85vh] overflow-y-auto">
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{selectedItem.title}</h3>
-                    <div className="flex items-center gap-2">
-                      <Layers size={13} className="text-white/30" />
-                      <span className="text-white/35 text-sm">{selectedItem.role}</span>
-                    </div>
+                <div style={{ padding: '24px' }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: 'white', marginBottom: '8px', lineHeight: 1.3 }}>{selectedItem.title}</h3>
+                  <div className="flex items-center gap-2 mb-5">
+                    <Layers size={13} className="text-white/30" />
+                    <span className="text-white/35 text-sm">{selectedItem.role}</span>
                   </div>
-                  <div className="h-px bg-gradient-to-r from-white/10 to-transparent" />
+                  <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)', marginBottom: '20px' }} />
                   {[
                     { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
                     { icon: Code, label: "Solution", text: selectedItem.solution },
                     { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
                   ].map(({ icon: Icon, label, text, highlight }) => (
-                    <div key={label}>
+                    <div key={label} style={{ marginBottom: '20px' }}>
                       <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
                         <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>
                           <Icon size={13} style={{ color: cfg.dot }} />
                         </span>
                         {label}
                       </h4>
-                      <div className={`text-sm leading-relaxed space-y-1.5 ${highlight ? "p-4 rounded-xl border" : ""}`}
-                        style={highlight ? { backgroundColor: `${cfg.dot}10`, borderColor: `${cfg.dot}25`, color: `${cfg.dot}CC` } : { color: "rgba(255,255,255,0.5)" }}>
+                      <div className="text-sm leading-relaxed space-y-1.5"
+                        style={highlight
+                          ? { backgroundColor: `${cfg.dot}10`, color: `${cfg.dot}CC`, padding: '16px', borderRadius: '12px', border: `1px solid ${cfg.dot}25` }
+                          : { color: 'rgba(255,255,255,0.5)' }}>
                         {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
                       </div>
                     </div>
@@ -456,7 +540,9 @@ export function Portfolio() {
             </motion.div>
           );
         })()}
-      </AnimatePresence>
-    </section>
+      </AnimatePresence>,
+      document.body
+    )}
+    </>
   );
 }

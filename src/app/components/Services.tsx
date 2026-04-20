@@ -1,19 +1,18 @@
 import { motion, useMotionValue, useTransform, useSpring } from "motion/react";
 import { Smartphone, Monitor, Search, Handshake, Sparkles, Zap } from "lucide-react";
 import { useRef, useState, memo } from "react";
-import { detectDeviceCapability } from "../utils/performance";
-
-const { isMobile, isSafari } = detectDeviceCapability();
-const reduceEffects = isMobile || isSafari;
+import { useAnimationConfig } from "../context/AnimationContext";
 
 const services = [
-  { title: "UI Design", description: "Crafting visually compelling interfaces with strong layout systems, design tokens, and micro-animation details.", icon: Monitor, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]", number: "01" },
-  { title: "UX Research", description: "Conducting user interviews, usability testing, and data-driven research to validate design decisions.", icon: Search, color: "#FF2222", gradient: "from-[#FF2222] to-[#FF6666]", number: "02" },
-  { title: "Prototyping", description: "Building interactive prototypes in Figma and Framer — from low-fidelity wireframes to high-fidelity flows.", icon: Smartphone, color: "#FF4444", gradient: "from-[#FF4444] to-[#FF8888]", number: "03" },
-  { title: "Design to Dev Collaboration", description: "Seamless handoffs and strong communication with developers to bring designs to life with precision.", icon: Handshake, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]", number: "04", span: true },
+  { title: "UI Design", description: "Crafting visually compelling interfaces with strong layout systems, design tokens, and micro-animation details.", icon: Monitor, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]" },
+  { title: "UX Research", description: "Conducting user interviews, usability testing, and data-driven research to validate design decisions.", icon: Search, color: "#FF2222", gradient: "from-[#FF2222] to-[#FF6666]" },
+  { title: "Prototyping", description: "Building interactive prototypes in Figma and Framer — from low-fidelity wireframes to high-fidelity flows.", icon: Smartphone, color: "#FF4444", gradient: "from-[#FF4444] to-[#FF8888]" },
+  { title: "Design to Dev Collaboration", description: "Seamless handoffs and strong communication with developers to bring designs to life with precision.", icon: Handshake, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]", span: true },
 ];
 
 const ServiceCard = memo(function ServiceCard({ service, index }: { service: typeof services[0]; index: number }) {
+  const { enable3DTilt, isMobile } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   const ref = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -40,19 +39,20 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
       ref={ref}
       initial={{ opacity: 0, y: 40, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, margin: "-20px" }}
+      transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
       style={reduceEffects ? {} : { rotateX, rotateY, transformStyle: "preserve-3d", willChange: hovered ? "transform" : "auto" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => !reduceEffects && setHovered(true)}
       onMouseLeave={handleMouseLeave}
-      className={`relative p-5 sm:p-10 rounded-3xl bg-gradient-to-br from-[#0d0d0d] to-[#080808] border border-white/10 overflow-hidden group cursor-default ${service.span ? "md:col-span-8 md:col-start-3" : "md:col-span-4"}`}
+      className={`relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#0d0d0d] to-[#080808] border border-white/10 overflow-hidden group cursor-default ${service.span ? "md:col-span-8 md:col-start-3" : "md:col-span-4"}`}
     >
       {/* Animated gradient bg — subtle on mobile */}
       <motion.div
         animate={{ opacity: hovered ? 0.15 : 0.05 }}
         transition={{ duration: 0.4 }}
-        className={`absolute inset-0 bg-gradient-to-br ${service.gradient} blur-3xl pointer-events-none`}
+        className={`absolute inset-0 bg-gradient-to-br ${service.gradient} pointer-events-none`}
+        style={{ boxShadow: hovered ? `inset 0 0 60px ${service.color}20` : "none" }}
       />
 
       {/* Cursor spotlight — desktop non-Safari only */}
@@ -100,13 +100,7 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
         />
       )}
 
-      {/* Number watermark */}
-      <motion.span
-        animate={{ opacity: hovered ? 0.1 : 0.04 }}
-        className={`absolute top-4 sm:top-6 right-6 sm:right-8 text-6xl sm:text-8xl font-black bg-gradient-to-br ${service.gradient} bg-clip-text text-transparent select-none pointer-events-none`}
-      >
-        {service.number}
-      </motion.span>
+
 
       <div className="relative z-10 flex flex-col items-center text-center gap-4 sm:gap-6">
         {/* Icon with pulse rings */}
@@ -138,8 +132,8 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
             {/* Icon inner glow on hover */}
             <motion.div
               animate={{ opacity: hovered ? 0.5 : 0 }}
-              className="absolute inset-0 rounded-2xl blur-lg"
-              style={{ backgroundColor: service.color }}
+              className="absolute inset-0 rounded-2xl"
+              style={{ boxShadow: `inset 0 0 20px ${service.color}60` }}
             />
           </motion.div>
 
@@ -202,24 +196,23 @@ const ServiceCard = memo(function ServiceCard({ service, index }: { service: typ
           />
         </div>
 
-        {/* Hover explore indicator — desktop non-Safari only */}
-        {!reduceEffects && (
-          <motion.div
-            animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 8 }}
-            className="flex items-center gap-2 text-xs text-white/40 font-semibold uppercase tracking-wider"
-          >
-            <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1, repeat: Infinity }}>→</motion.span>
-            Explore
-          </motion.div>
-        )}
+        {/* Hover glow line — minimal accent */}
+        <motion.div
+          animate={{ scaleX: hovered ? 1 : 0, opacity: hovered ? 1 : 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{ originX: 0.5, background: `linear-gradient(90deg, transparent, ${service.color}, transparent)` }}
+          className="w-full h-[1px] rounded-full"
+        />
       </div>
     </motion.div>
   );
 });
 
 export function Services() {
+  const { enable3DTilt, isMobile } = useAnimationConfig();
+  const reduceEffects = !enable3DTilt;
   return (
-    <section id="services" className="py-28 bg-[#080808] relative overflow-hidden">
+    <section id="services" className="pt-24 pb-28 bg-[#080808] relative overflow-hidden">
       {/* Animated grid — desktop non-Safari only */}
       {!reduceEffects ? (
         <motion.div
@@ -264,6 +257,7 @@ export function Services() {
       {/* Floating dots — desktop non-Safari only */}
       {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
         <motion.div key={i}
+          aria-hidden="true"
           animate={{ y: [0, -25, 0], opacity: [0, 0.35, 0], scale: [0.5, 1.1, 0.5] }}
           transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.7 }}
           className="absolute w-1.5 h-1.5 bg-[#FF0000] rounded-full pointer-events-none"
@@ -273,22 +267,18 @@ export function Services() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
-        <div className="text-center mb-20 space-y-5">
+        <div className="text-center mb-12 space-y-5">
           <motion.div
             initial={{ opacity: 0, y: -15, scale: 0.9 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-3 px-5 py-2 bg-[#FF0000]/10 border border-[#FF0000]/30 rounded-full mb-4"
+            className="inline-flex items-center gap-3 px-4 py-1.5 bg-black/60 border border-[#FF0000]/20 rounded font-mono mb-4"
           >
-            <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.8, repeat: Infinity }}
-              className="relative">
-              <span className="w-2 h-2 bg-[#FF0000] rounded-full block" />
-              <motion.span animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 1.8, repeat: Infinity }}
-                className="absolute inset-0 w-2 h-2 bg-[#FF0000] rounded-full" />
-            </motion.span>
-            <span className="text-[#FF0000] text-xs font-bold uppercase tracking-[0.2em]">What I Do</span>
-            <Sparkles size={13} className="text-[#FF0000]" />
+            <motion.span animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
+              className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
+            <span className="text-[#FF0000] text-[10px] font-bold uppercase tracking-[0.2em]">SERVICES.EXE</span>
+            <span className="text-white/20 text-[10px]">// WHAT_I_DO</span>
           </motion.div>
 
           <motion.h2
