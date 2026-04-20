@@ -166,8 +166,6 @@ export function Portfolio() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<Category>("All");
   const [showAll, setShowAll] = useState(false);
-  const touchStartY = useRef(0);
-  const touchingModal = useRef(false);
 
   // Close modal on Escape key + lock body scroll on mobile
   useEffect(() => {
@@ -446,81 +444,81 @@ export function Portfolio() {
           return (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              onClick={() => setSelectedId(null)}
-              onTouchStart={(e) => {
-                touchStartY.current = e.touches[0].clientY;
-                touchingModal.current = false;
-              }}
-              onTouchEnd={(e) => {
-                // Only swipe-to-close if not touching inside the modal content
-                if (!touchingModal.current && e.changedTouches[0].clientY - touchStartY.current > 80) {
-                  setSelectedId(null);
-                }
-              }}
-              className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 sm:p-10 overflow-y-auto"
+              className="fixed inset-0 z-[9999] bg-black/90"
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
               role="dialog"
               aria-modal="true"
               aria-label={selectedItem.title}
             >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 40 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 40 }}
-                transition={{ type: "spring", damping: 28, stiffness: 280 }}
-                onClick={e => e.stopPropagation()}
-                onTouchStart={() => { touchingModal.current = true; }}
-                className="w-full max-w-4xl bg-[#0c0c0c] rounded-3xl border border-white/8 overflow-hidden flex flex-col md:flex-row relative my-auto"
-                style={{ boxShadow: `0 0 60px ${cfg.glow}` }}
+              {/* Backdrop tap to close */}
+              <div className="absolute inset-0" onClick={() => setSelectedId(null)} />
+
+              {/* Scrollable container */}
+              <div
+                className="absolute inset-0 overflow-y-auto overscroll-contain"
+                style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => setSelectedId(null)}
-                  aria-label="Close"
-                  className="absolute top-4 right-4 z-20 p-2 bg-white/8 text-white rounded-full">
-                  <X size={16} />
-                </motion.button>
+                <div className="min-h-full flex items-center justify-center p-4 sm:p-10">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 40 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                    transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                    onClick={e => e.stopPropagation()}
+                    className="w-full max-w-4xl bg-[#0c0c0c] rounded-3xl border border-white/8 overflow-hidden flex flex-col md:flex-row relative"
+                    style={{ boxShadow: `0 0 60px ${cfg.glow}` }}
+                  >
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setSelectedId(null)}
+                      aria-label="Close"
+                      className="absolute top-4 right-4 z-20 p-2 bg-white/8 text-white rounded-full">
+                      <X size={16} />
+                    </motion.button>
 
-                {/* Image */}
-                <div className="w-full md:w-2/5 h-52 md:h-auto relative flex-shrink-0 overflow-hidden">
-                  <motion.img src={selectedItem.image} alt={selectedItem.title}
-                    initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.6 }}
-                    loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0c0c0c] hidden md:block" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] to-transparent block md:hidden" />
-                  <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
-                    {selectedItem.category}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col gap-5 max-h-[85vh] overflow-y-auto">
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{selectedItem.title}</h3>
-                    <div className="flex items-center gap-2">
-                      <Layers size={13} className="text-white/30" />
-                      <span className="text-white/35 text-sm">{selectedItem.role}</span>
-                    </div>
-                  </div>
-                  <div className="h-px bg-gradient-to-r from-white/10 to-transparent" />
-                  {[
-                    { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
-                    { icon: Code, label: "Solution", text: selectedItem.solution },
-                    { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
-                  ].map(({ icon: Icon, label, text, highlight }) => (
-                    <div key={label}>
-                      <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
-                        <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>
-                          <Icon size={13} style={{ color: cfg.dot }} />
-                        </span>
-                        {label}
-                      </h4>
-                      <div className={`text-sm leading-relaxed space-y-1.5 ${highlight ? "p-4 rounded-xl border" : ""}`}
-                        style={highlight ? { backgroundColor: `${cfg.dot}10`, borderColor: `${cfg.dot}25`, color: `${cfg.dot}CC` } : { color: "rgba(255,255,255,0.5)" }}>
-                        {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
+                    {/* Image */}
+                    <div className="w-full md:w-2/5 h-52 md:h-auto relative flex-shrink-0 overflow-hidden">
+                      <motion.img src={selectedItem.image} alt={selectedItem.title}
+                        initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.6 }}
+                        loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0c0c0c] hidden md:block" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] to-transparent block md:hidden" />
+                      <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                        {selectedItem.category}
                       </div>
                     </div>
-                  ))}
+
+                    {/* Content */}
+                    <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col gap-5">
+                      <div>
+                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{selectedItem.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <Layers size={13} className="text-white/30" />
+                          <span className="text-white/35 text-sm">{selectedItem.role}</span>
+                        </div>
+                      </div>
+                      <div className="h-px bg-gradient-to-r from-white/10 to-transparent" />
+                      {[
+                        { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
+                        { icon: Code, label: "Solution", text: selectedItem.solution },
+                        { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
+                      ].map(({ icon: Icon, label, text, highlight }) => (
+                        <div key={label}>
+                          <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
+                            <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>
+                              <Icon size={13} style={{ color: cfg.dot }} />
+                            </span>
+                            {label}
+                          </h4>
+                          <div className={`text-sm leading-relaxed space-y-1.5 ${highlight ? "p-4 rounded-xl border" : ""}`}
+                            style={highlight ? { backgroundColor: `${cfg.dot}10`, borderColor: `${cfg.dot}25`, color: `${cfg.dot}CC` } : { color: "rgba(255,255,255,0.5)" }}>
+                            {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           );
         })()}
