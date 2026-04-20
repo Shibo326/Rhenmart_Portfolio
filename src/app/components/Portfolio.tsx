@@ -177,8 +177,10 @@ export function Portfolio() {
   useEffect(() => {
     if (selectedId) {
       document.body.style.overflow = 'hidden';
+      window.dispatchEvent(new Event('portfolio-modal-open'));
     } else {
       document.body.style.overflow = '';
+      window.dispatchEvent(new Event('portfolio-modal-close'));
     }
     return () => { document.body.style.overflow = ''; };
   }, [selectedId]);
@@ -450,8 +452,8 @@ export function Portfolio() {
               aria-modal="true"
               aria-label={selectedItem.title}
             >
-              {/* Backdrop tap to close */}
-              <div className="absolute inset-0" onClick={() => setSelectedId(null)} />
+              {/* No backdrop tap-to-close — X button only */}
+              <div className="absolute inset-0" />
 
               {/* Scrollable container */}
               <div

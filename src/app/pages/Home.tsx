@@ -181,11 +181,23 @@ export function Home() {
   const { isMobile, isSafari } = useAnimationConfig();
   const reduceEffects = isMobile || isSafari;
   const [showTopBtn, setShowTopBtn] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShowTopBtn(window.scrollY > 500);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const onModalOpen = () => setModalOpen(true);
+    const onModalClose = () => setModalOpen(false);
+    window.addEventListener('portfolio-modal-open', onModalOpen);
+    window.addEventListener('portfolio-modal-close', onModalClose);
+    return () => {
+      window.removeEventListener('portfolio-modal-open', onModalOpen);
+      window.removeEventListener('portfolio-modal-close', onModalClose);
+    };
   }, []);
 
   return (
@@ -237,7 +249,7 @@ export function Home() {
 
       {/* Back to top */}
       <AnimatePresence>
-        {showTopBtn && (
+        {showTopBtn && !modalOpen && (
           <motion.button
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
