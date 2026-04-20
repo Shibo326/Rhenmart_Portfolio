@@ -20,32 +20,61 @@ export default defineConfig({
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
   build: {
-    // Increase chunk warning limit
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        // Manual chunk splitting for better caching
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'router': ['react-router'],
-          'motion': ['motion'],
-          'icons': ['lucide-react'],
-          'emailjs': ['@emailjs/browser'],
+        manualChunks(id) {
+          // Core React — loads first, cached aggressively
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+          // Animation library
+          if (id.includes('node_modules/motion')) {
+            return 'motion';
+          }
+          // Router
+          if (id.includes('node_modules/react-router')) {
+            return 'router';
+          }
+          // Icons
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons';
+          }
+          // EmailJS
+          if (id.includes('node_modules/@emailjs')) {
+            return 'emailjs';
+          }
+          // PDF generation — lazy loaded on demand, split into own chunk
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) {
+            return 'pdf-vendor';
+          }
+          // MUI — heavy, split out so it doesn't block initial load
+          if (id.includes('node_modules/@mui') || id.includes('node_modules/@emotion')) {
+            return 'mui-vendor';
+          }
+          // Radix UI components
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'radix-vendor';
+          }
+          // Charts
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) {
+            return 'charts-vendor';
+          }
+          // Everything else from node_modules
+          if (id.includes('node_modules')) {
+            return 'vendor-misc';
+          }
         },
       },
     },
-    // Minify with esbuild (faster + smaller)
     minify: 'esbuild',
-    // Target modern browsers only
     target: 'es2020',
-    // Enable CSS code splitting
     cssCodeSplit: true,
-    // Reduce sourcemap size in prod
     sourcemap: false,
   },
-  // Optimize deps pre-bundling
   optimizeDeps: {
     include: ['react', 'react-dom', 'motion', 'lucide-react'],
-    exclude: [],
+    // Exclude heavy libs from pre-bundling — they'll be lazy loaded
+    exclude: ['jspdf', 'html2canvas'],
   },
 })
