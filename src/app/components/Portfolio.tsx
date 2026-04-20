@@ -1,5 +1,6 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, type Variants } from "motion/react";
 import { useState, useRef, useCallback, memo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, ExternalLink, Code, Trophy, Layers, Filter } from "lucide-react";
 import champImg from "../../Image/umak champ.jpg";
 import ndcImg from "../../Image/ndc_startup.jpeg";
@@ -200,6 +201,7 @@ export function Portfolio() {
   };
 
   return (
+    <>
     <section id="portfolio" className="pt-20 pb-24 bg-[#080808] relative overflow-hidden">
       {/* Static grid */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
@@ -439,7 +441,10 @@ export function Portfolio() {
         )}
       </div>
 
-      {/* Modal */}
+    </section>
+
+    {/* Modal — rendered via portal OUTSIDE section to avoid overflow-hidden clipping */}
+    {createPortal(
       <AnimatePresence>
         {selectedId && selectedItem && (() => {
           const cfg = categoryConfig[selectedItem.category];
@@ -483,56 +488,33 @@ export function Portfolio() {
                   boxShadow: `0 0 60px ${cfg.glow}`,
                 }}
               >
-                {/* X Close button */}
                 <button
                   onClick={() => setSelectedId(null)}
                   aria-label="Close"
                   style={{
-                    position: 'absolute',
-                    top: '16px',
-                    right: '16px',
-                    zIndex: 20,
-                    padding: '8px',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    color: 'white',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    position: 'absolute', top: '16px', right: '16px', zIndex: 20,
+                    padding: '8px', backgroundColor: 'rgba(255,255,255,0.08)',
+                    border: 'none', borderRadius: '50%', color: 'white',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >
                   <X size={16} />
                 </button>
-
-                {/* Image */}
-                <div style={{ width: '100%', height: '220px', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-                  <img
-                    src={selectedItem.image}
-                    alt={selectedItem.title}
-                    loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                <div style={{ width: '100%', height: '220px', position: 'relative', overflow: 'hidden' }}>
+                  <img src={selectedItem.image} alt={selectedItem.title} loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0c0c0c, transparent)' }} />
                   <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
-                    {selectedItem.category}
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />{selectedItem.category}
                   </div>
                 </div>
-
-                {/* Content */}
                 <div style={{ padding: '24px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: 'white', marginBottom: '8px', lineHeight: 1.3 }}>
-                    {selectedItem.title}
-                  </h3>
+                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: 'white', marginBottom: '8px', lineHeight: 1.3 }}>{selectedItem.title}</h3>
                   <div className="flex items-center gap-2 mb-5">
                     <Layers size={13} className="text-white/30" />
                     <span className="text-white/35 text-sm">{selectedItem.role}</span>
                   </div>
-
                   <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)', marginBottom: '20px' }} />
-
                   {[
                     { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
                     { icon: Code, label: "Solution", text: selectedItem.solution },
@@ -545,13 +527,10 @@ export function Portfolio() {
                         </span>
                         {label}
                       </h4>
-                      <div
-                        className="text-sm leading-relaxed space-y-1.5"
+                      <div className="text-sm leading-relaxed space-y-1.5"
                         style={highlight
-                          ? { backgroundColor: `${cfg.dot}10`, borderColor: `${cfg.dot}25`, color: `${cfg.dot}CC`, padding: '16px', borderRadius: '12px', border: `1px solid ${cfg.dot}25` }
-                          : { color: 'rgba(255,255,255,0.5)' }
-                        }
-                      >
+                          ? { backgroundColor: `${cfg.dot}10`, color: `${cfg.dot}CC`, padding: '16px', borderRadius: '12px', border: `1px solid ${cfg.dot}25` }
+                          : { color: 'rgba(255,255,255,0.5)' }}>
                         {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
                       </div>
                     </div>
@@ -561,7 +540,9 @@ export function Portfolio() {
             </motion.div>
           );
         })()}
-      </AnimatePresence>
-    </section>
+      </AnimatePresence>,
+      document.body
+    )}
+    </>
   );
 }
