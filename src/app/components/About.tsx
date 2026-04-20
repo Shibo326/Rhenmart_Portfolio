@@ -160,7 +160,7 @@ export function About() {
               <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
               <div className="text-[#FF0000]/30 text-[9px] font-mono uppercase tracking-widest mb-3">// DESIGNER_PROFILE.md</div>
               {[
-                "Self-taught UI/UX Designer and Computer Science student from the Philippines with 5 years of hands-on learning. I build user-friendly interfaces through research, rapid prototyping in Figma, and close collaboration with developers.",
+                "Self-taught UI/UX Designer and Bachelor of Science in Information Technology (BSIT) student from the Philippines with 5 years of hands-on learning. I build user-friendly interfaces through research, rapid prototyping in Figma, and close collaboration with developers.",
                 "My process starts with human research — interviews, papers, and real observation — before touching any tool. I use AI to enhance and validate findings, not replace the thinking.",
                 "From academic competitions to community workshops, I've been sharpening my craft through real projects and real feedback.",
               ].map((text, i) => (

@@ -7,6 +7,7 @@
 ## 1. OWNER INFO
 - **Name:** Rhenmart Dela Cruz
 - **Title:** UX/UI Designer / Product Designer
+- **Degree:** Bachelor of Science in Information Technology (BSIT)
 - **Email:** Rhenmart978@gmail.com
 - **GitHub:** Shibo326 — https://github.com/Shibo326
 - **LinkedIn:** rhenmart-delacruz-117858312 — https://www.linkedin.com/in/rhenmart-delacruz-117858312/
