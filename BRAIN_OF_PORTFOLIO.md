@@ -169,6 +169,11 @@ src/
 - Filter tabs: `FILTER_BY:` monospace, square buttons
 - 8 portfolio items (see Section 10)
 - Modal: case study detail with challenge/solution/impact
+- **Modal uses React Portal (`createPortal`) — renders on `document.body` outside the section**
+- This is required because `<section>` has `overflow-hidden` which clips `position: fixed` on mobile
+- Only the X button closes the modal (no backdrop tap, no swipe-to-close)
+- Body scroll locked when modal is open (`document.body.style.overflow = 'hidden'`)
+- Back-to-top button hides when modal is open (via custom window events)
 
 ### Contact
 - Section badge: `CONTACT.EXE // GET_IN_TOUCH`
@@ -396,6 +401,23 @@ When Kiro reads this file, it should:
 - Adding/removing tools or portfolio items
 - Major design system changes
 - Performance optimizations
+
+---
+
+## 15. KNOWN GOTCHAS & FIXES
+
+### Modal / Overlay on Mobile
+- **Problem:** `position: fixed` overlays get clipped on mobile when inside a parent with `overflow-hidden`
+- **Fix:** Always use `createPortal(content, document.body)` from `react-dom` for modals, drawers, and full-screen overlays
+- **Applied in:** `Portfolio.tsx` — modal renders via portal outside the `<section overflow-hidden>`
+
+### Body Scroll Lock
+- When a modal is open, set `document.body.style.overflow = 'hidden'`
+- Always clean up in the `useEffect` return: `document.body.style.overflow = ''`
+
+### Back-to-Top Button + Modal
+- Use custom window events (`portfolio-modal-open` / `portfolio-modal-close`) to hide the back-to-top button when modal is open
+- Prevents the button from overlapping the modal on mobile
 
 ---
 
