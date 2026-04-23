@@ -1,331 +1,164 @@
-import { motion, useMotionValue, useTransform, useSpring } from "motion/react";
-import { Smartphone, Monitor, Search, Handshake, Sparkles, Zap } from "lucide-react";
-import { useRef, useState, memo } from "react";
-import { useAnimationConfig } from "../context/AnimationContext";
+import { memo } from "react";
+import { motion } from "motion/react";
+import { Monitor, Search, Smartphone, Handshake } from "lucide-react";
+import { SectionBadge, RedDivider, HudCorners } from "./Hud";
+import { useTilt } from "../hooks/useDeviceAnimations";
 
-const services = [
-  { title: "UI Design", description: "Crafting visually compelling interfaces with strong layout systems, design tokens, and micro-animation details.", icon: Monitor, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]" },
-  { title: "UX Research", description: "Conducting user interviews, usability testing, and data-driven research to validate design decisions.", icon: Search, color: "#FF2222", gradient: "from-[#FF2222] to-[#FF6666]" },
-  { title: "Prototyping", description: "Building interactive prototypes in Figma and Framer — from low-fidelity wireframes to high-fidelity flows.", icon: Smartphone, color: "#FF4444", gradient: "from-[#FF4444] to-[#FF8888]" },
-  { title: "Design to Dev Collaboration", description: "Seamless handoffs and strong communication with developers to bring designs to life with precision.", icon: Handshake, color: "#FF0000", gradient: "from-[#FF0000] to-[#FF4444]", span: true },
+const SERVICES = [
+  {
+    Icon: Monitor,
+    title: "UI Design",
+    desc: "Crafting visually compelling interfaces with strong layout systems, design tokens, and micro-animation details.",
+  },
+  {
+    Icon: Search,
+    title: "UX Research",
+    desc: "Conducting user interviews, usability testing, and data-driven research to validate design decisions.",
+  },
+  {
+    Icon: Smartphone,
+    title: "Prototyping",
+    desc: "Building interactive prototypes in Figma and Framer — from low-fidelity wireframes to high-fidelity flows.",
+  },
+  {
+    Icon: Handshake,
+    title: "Design to Dev",
+    desc: "Seamless handoffs and strong communication with developers to bring designs to life with precision.",
+  },
 ];
 
-const ServiceCard = memo(function ServiceCard({ service, index }: { service: typeof services[0]; index: number }) {
-  const { enable3DTilt, isMobile } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
-  const ref = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(mouseY, [-100, 100], [4, -4]), { stiffness: 150, damping: 25 });
-  const rotateY = useSpring(useTransform(mouseX, [-100, 100], [-4, 4]), { stiffness: 150, damping: 25 });
-  const glowX = useTransform(mouseX, [-100, 100], [0, 100]);
-  const glowY = useTransform(mouseY, [-100, 100], [0, 100]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (reduceEffects || !hovered) return;
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    mouseX.set(e.clientX - rect.left - rect.width / 2);
-    mouseY.set(e.clientY - rect.top - rect.height / 2);
-  };
-
-  const handleMouseLeave = () => { mouseX.set(0); mouseY.set(0); setHovered(false); };
-  const Icon = service.icon;
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40, scale: 0.95 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-20px" }}
-      transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
-      style={reduceEffects ? {} : { rotateX, rotateY, transformStyle: "preserve-3d", willChange: hovered ? "transform" : "auto" }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => !reduceEffects && setHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      className={`relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#0d0d0d] to-[#080808] border border-white/10 overflow-hidden group cursor-default ${service.span ? "md:col-span-8 md:col-start-3" : "md:col-span-4"}`}
-    >
-      {/* Animated gradient bg — subtle on mobile */}
-      <motion.div
-        animate={{ opacity: hovered ? 0.15 : 0.05 }}
-        transition={{ duration: 0.4 }}
-        className={`absolute inset-0 bg-gradient-to-br ${service.gradient} pointer-events-none`}
-        style={{ boxShadow: hovered ? `inset 0 0 60px ${service.color}20` : "none" }}
-      />
-
-      {/* Cursor spotlight — desktop non-Safari only */}
-      {!reduceEffects && (
-        <motion.div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-3xl"
-          style={{ background: useTransform([glowX, glowY], ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,0,0,0.18) 0%, transparent 55%)`) }}
-        />
-      )}
-
-      {/* Border glow on hover */}
-      <motion.div
-        animate={{ opacity: hovered ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 rounded-3xl pointer-events-none"
-        style={{ boxShadow: `inset 0 0 0 1.5px ${service.color}50, 0 0 35px ${service.color}25` }}
-      />
-
-      {/* Animated gradient border — desktop non-Safari only */}
-      {!reduceEffects && (
-        <motion.div animate={{ opacity: hovered ? 1 : 0 }} transition={{ duration: 0.3 }}
-          className="absolute inset-0 rounded-3xl pointer-events-none">
-          <motion.div
-            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 rounded-3xl p-[1.5px]"
-            style={{
-              background: `linear-gradient(90deg, ${service.color}, ${service.color}88, ${service.color}44, ${service.color}88, ${service.color})`,
-              backgroundSize: "200% 100%",
-              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              WebkitMaskComposite: "xor",
-              maskComposite: "exclude"
-            }}
-          />
-        </motion.div>
-      )}
-
-      {/* Shimmer sweep — desktop non-Safari only */}
-      {!reduceEffects && (
-        <motion.div
-          initial={{ x: "-100%", opacity: 0 }}
-          animate={{ x: hovered ? "200%" : "-100%", opacity: hovered ? 1 : 0 }}
-          transition={{ duration: 0.7, ease: "easeInOut" }}
-          className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/6 to-transparent skew-x-12 pointer-events-none"
-        />
-      )}
-
-
-
-      <div className="relative z-10 flex flex-col items-center text-center gap-4 sm:gap-6">
-        {/* Icon with pulse rings */}
-        <div className="relative">
-          {/* Outer pulse ring */}
-          <motion.div
-            animate={{ scale: [1, 1.7, 1], opacity: [0.25, 0, 0.25] }}
-            transition={{ duration: 3, repeat: Infinity, delay: index * 0.4 }}
-            className="absolute inset-0 rounded-full"
-            style={{ background: `radial-gradient(circle, ${service.color}35 0%, transparent 70%)` }}
-          />
-          {/* Inner pulse ring — desktop non-Safari only */}
-          {!reduceEffects && (
-            <motion.div
-              animate={{ scale: [1, 1.35, 1], opacity: [0.3, 0, 0.3] }}
-              transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4 + 0.4 }}
-              className="absolute inset-0 rounded-full"
-              style={{ background: `radial-gradient(circle, ${service.color}25 0%, transparent 70%)` }}
-            />
-          )}
-
-          <motion.div
-            whileHover={reduceEffects ? {} : { rotate: [0, -12, 12, -8, 8, 0], scale: 1.2 }}
-            transition={{ duration: 0.5, type: "spring", stiffness: 280 }}
-            className={`relative p-3 sm:p-5 bg-gradient-to-br ${service.gradient} rounded-2xl border border-white/20 shadow-lg`}
-            style={{ boxShadow: `0 8px 30px ${service.color}35`, transform: reduceEffects ? "none" : "translateZ(25px)" }}
-          >
-            <Icon size={isMobile ? 24 : 34} className="text-white" />
-            {/* Icon inner glow on hover */}
-            <motion.div
-              animate={{ opacity: hovered ? 0.5 : 0 }}
-              className="absolute inset-0 rounded-2xl"
-              style={{ boxShadow: `inset 0 0 20px ${service.color}60` }}
-            />
-          </motion.div>
-
-          {/* Sparkle effects on hover — desktop non-Safari only */}
-          {!reduceEffects && hovered && (
-            <>
-              <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: [0, 1, 0], rotate: 180 }}
-                transition={{ duration: 0.5 }} className="absolute -top-2 -right-2">
-                <Sparkles size={14} className="text-[#FF0000]" />
-              </motion.div>
-              <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: [0, 1, 0], rotate: -180 }}
-                transition={{ duration: 0.5, delay: 0.15 }} className="absolute -bottom-2 -left-2">
-                <Zap size={12} className="text-[#FF4444]" />
-              </motion.div>
-            </>
-          )}
-        </div>
-
-        <div style={reduceEffects ? {} : { transform: "translateZ(18px)" }} className="space-y-2 sm:space-y-3">
-          <motion.h3
-            animate={{ color: hovered ? service.color : "#ffffff" }}
-            transition={{ duration: 0.2 }}
-            className="text-xl sm:text-2xl font-black tracking-tight"
-          >
-            {service.title}
-          </motion.h3>
-          <motion.p
-            animate={{ opacity: hovered ? 1 : 0.6 }}
-            className="text-white/60 leading-relaxed text-xs sm:text-sm max-w-md mx-auto"
-          >
-            {service.description}
-          </motion.p>
-        </div>
-
-        {/* Bottom accent */}
-        <div className="flex items-center gap-2">
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: index * 0.1 + 0.4 }}
-            animate={{ scaleX: hovered ? 1.4 : 1 }}
-            style={{ originX: 0.5 }}
-            className={`w-10 h-[2px] bg-gradient-to-r ${service.gradient} rounded-full`}
-          />
-          <motion.div
-            animate={{ scale: hovered ? [1, 1.5, 1] : 1, opacity: hovered ? [0.5, 1, 0.5] : 0.5 }}
-            transition={{ duration: 1, repeat: hovered ? Infinity : 0 }}
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: service.color }}
-          />
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: index * 0.1 + 0.4 }}
-            animate={{ scaleX: hovered ? 1.4 : 1 }}
-            style={{ originX: 0.5 }}
-            className={`w-10 h-[2px] bg-gradient-to-l ${service.gradient} rounded-full`}
-          />
-        </div>
-
-        {/* Hover glow line — minimal accent */}
-        <motion.div
-          animate={{ scaleX: hovered ? 1 : 0, opacity: hovered ? 1 : 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ originX: 0.5, background: `linear-gradient(90deg, transparent, ${service.color}, transparent)` }}
-          className="w-full h-[1px] rounded-full"
-        />
-      </div>
-    </motion.div>
-  );
-});
-
 export function Services() {
-  const { enable3DTilt, isMobile } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
   return (
-    <section id="services" className="pt-24 pb-28 bg-[#080808] relative overflow-hidden">
-      {/* Animated grid — desktop non-Safari only */}
-      {!reduceEffects ? (
-        <motion.div
-          animate={{ backgroundPosition: ["0px 0px", "60px 60px"] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 pointer-events-none opacity-[0.025]"
-          style={{ backgroundImage: "linear-gradient(rgba(255,0,0,0.8) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,0.8) 1px,transparent 1px)", backgroundSize: "60px 60px" }}
-        />
-      ) : (
-        <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
-          style={{ backgroundImage: "linear-gradient(rgba(255,0,0,0.8) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,0.8) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
-      )}
+    <section id="services" className="relative py-32 bg-[#080808] overflow-hidden">
+      <div className="absolute inset-0 bg-grid opacity-30" />
+      <div className="absolute inset-0 holo opacity-40 pointer-events-none" />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none animate-orb"
+        style={{ background: "rgba(255,0,0,0.05)", filter: "blur(80px)" }}
+      />
 
-      {/* Decorative rotating rings — desktop non-Safari only */}
-      {!reduceEffects && (
-        <>
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-64 -right-64 w-[600px] h-[600px] border border-white/[0.04] rounded-full pointer-events-none" />
-          <motion.div animate={{ rotate: -360 }} transition={{ duration: 100, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-64 -left-64 w-[700px] h-[700px] border border-white/[0.03] rounded-full pointer-events-none" />
-        </>
-      )}
-
-      {/* Floating gradient orbs — desktop non-Safari only, box-shadow instead of blur */}
-      {!reduceEffects && (
-        <>
-          <motion.div
-            animate={{ x: [0, 80, 0], y: [0, -40, 0], opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none"
-            style={{ boxShadow: "0 0 160px 80px rgba(255,0,0,0.07)", background: "transparent" }}
-          />
-          <motion.div
-            animate={{ x: [0, -60, 0], y: [0, 50, 0], opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
-            style={{ boxShadow: "0 0 180px 90px rgba(255,68,68,0.05)", background: "transparent" }}
-          />
-        </>
-      )}
-
-      {/* Floating dots — desktop non-Safari only */}
-      {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
-        <motion.div key={i}
-          aria-hidden="true"
-          animate={{ y: [0, -25, 0], opacity: [0, 0.35, 0], scale: [0.5, 1.1, 0.5] }}
-          transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.7 }}
-          className="absolute w-1.5 h-1.5 bg-[#FF0000] rounded-full pointer-events-none"
-          style={{ left: `${8 + i * 18}%`, top: `${15 + (i % 4) * 22}%` }}
-        />
-      ))}
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
         {/* Header */}
-        <div className="text-center mb-12 space-y-5">
+        <div className="grid md:grid-cols-12 gap-8 items-end mb-16">
           <motion.div
-            initial={{ opacity: 0, y: -15, scale: 0.9 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-3 px-4 py-1.5 bg-black/60 border border-[#FF0000]/20 rounded font-mono mb-4"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="md:col-span-7 space-y-4"
           >
-            <motion.span animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
-              className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
-            <span className="text-[#FF0000] text-[10px] font-bold uppercase tracking-[0.2em]">SERVICES.EXE</span>
-            <span className="text-white/20 text-[10px]">// WHAT_I_DO</span>
+            <SectionBadge name="SERVICES.EXE" comment="WHAT_I_DO" />
+            <h2
+              className="font-black tracking-tighter text-gradient-white leading-[0.85]"
+              style={{ fontSize: "clamp(3rem, 9vw, 7rem)" }}
+            >
+              SERVICES
+            </h2>
+            <div className="max-w-xs">
+              <RedDivider />
+            </div>
           </motion.div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ delay: 0.1, duration: 0.6 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50 tracking-tight"
-          >
-            Services
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ delay: 0.2 }}
-            className="text-white/45 text-sm max-w-xl mx-auto"
-          >
-            Comprehensive design solutions from research to implementation
-          </motion.p>
-
           <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            style={{ originX: 0.5 }}
-            className="relative w-16 h-[3px] mx-auto rounded-full overflow-hidden"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="md:col-span-5 space-y-3"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FF0000] to-transparent" />
-            {!reduceEffects && (
-              <motion.div
-                animate={{ x: ["-100%", "200%"] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
-                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white to-transparent"
-              />
-            )}
+            <p className="text-[rgba(255,255,255,0.55)] leading-relaxed">
+              Comprehensive design solutions from research to implementation. Every service is
+              delivered with a research-first, dev-friendly mindset.
+            </p>
+            <div className="font-mono text-[10px] text-[#FF0000] tracking-widest">
+              ▸ FOUR_CORE_OFFERINGS // 100% CUSTOM
+            </div>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6" style={isMobile ? {} : { perspective: "1400px" }}>
-          {services.map((service, index) => (
-            <ServiceCard key={service.title} service={service} index={index} />
+        {/* Cards */}
+        <div className="perspective-1500 grid md:grid-cols-2 gap-6">
+          {SERVICES.map((s, i) => (
+            <ServiceCard key={s.title} {...s} index={i} />
           ))}
         </div>
       </div>
     </section>
   );
 }
+
+const ServiceCard = memo(function ServiceCard({
+  Icon,
+  title,
+  desc,
+  index,
+}: {
+  Icon: React.ElementType;
+  title: string;
+  desc: string;
+  index: number;
+}) {
+  const ref = useTilt<HTMLDivElement>(10);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 60, rotateX: -15 }}
+      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.7, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+      className="relative"
+    >
+      <div
+        ref={ref}
+        className="group relative bg-gradient-to-br from-[#050505] to-[#030303] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,0,0,0.60)] p-8 transition-colors overflow-hidden tilt-3d spotlight gradient-border h-full depth-shadow cut-corner"
+      >
+        <HudCorners />
+
+        {/* Shimmer */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity overflow-hidden pointer-events-none">
+          <div className="absolute -inset-y-2 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shimmer" />
+        </div>
+
+        <div className="relative tilt-layer space-y-5">
+          {/* Icon */}
+          <div className="flex items-start justify-between">
+            <div className="relative w-16 h-16 flex items-center justify-center bg-[#0a0000] border border-[rgba(255,0,0,0.35)] group-hover:border-[#FF0000] transition-all duration-300 overflow-hidden">
+              {/* Corner brackets */}
+              <span className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-[#FF0000]" />
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 border-t border-r border-[#FF0000]" />
+              <span className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b border-l border-[#FF0000]" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-[#FF0000]" />
+              {/* Glow bg on hover */}
+              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ background: "radial-gradient(ellipse at center, rgba(255,0,0,0.18) 0%, transparent 75%)" }} />
+              {/* Icon */}
+              <Icon
+                size={26}
+                className="relative z-10 text-[#FF0000] transition-all duration-300 group-hover:scale-110"
+                style={{ filter: "drop-shadow(0 0 6px rgba(255,0,0,0.7))" }}
+              />
+              {/* Bottom scan line */}
+              <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#FF0000] to-transparent opacity-60 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </div>
+
+          {/* Text */}
+          <div>
+            <h3 className="text-3xl font-black tracking-tight mb-3 group-hover:text-[#FF0000] transition-colors">
+              {title}
+            </h3>
+            <p className="text-sm text-[rgba(255,255,255,0.55)] leading-relaxed">{desc}</p>
+          </div>
+
+          {/* Footer */}
+          <div className="pt-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+            <span className="font-mono text-[10px] text-[rgba(255,255,255,0.30)] tracking-widest">
+              STATUS: AVAILABLE
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+ServiceCard.displayName = "ServiceCard";

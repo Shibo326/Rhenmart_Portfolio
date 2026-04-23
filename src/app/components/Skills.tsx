@@ -1,609 +1,442 @@
-import { motion, useInView, useMotionValue, useTransform, animate } from "motion/react";
-import { useEffect, useRef, useState, memo } from "react";
-import { Brain, Wrench, Bot, Sparkles, Code, Users } from "lucide-react";
-import { useAnimationConfig } from "../context/AnimationContext";
+import { useEffect, useRef, useState, type ElementType } from "react";
+import { motion, useInView } from "motion/react";
+import { Wrench, Bot, Code, Users, Sparkles } from "lucide-react";
+import { SectionBadge, RedDivider, HudCorners, StatusBadge } from "./Hud";
+import { useSectionGlow } from "../hooks/useDeviceAnimations";
 
-function Counter({ target, isInView }: { target: number; isInView: boolean }) {
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (v) => Math.round(v));
-  const [display, setDisplay] = useState(0);
+// ── Typing Quote ──────────────────────────────────────────────────────────
+const QUOTE_PLAIN = `"I start with human centered research, validate decisions with data, and leverage AI as a tool not a shortcut to craft `;
+const QUOTE_RED   = `intentional, accessible, and meaningful digital experiences`;
+const QUOTE_END   = `."`;
+const FULL_TEXT   = QUOTE_PLAIN + QUOTE_RED + QUOTE_END;
+
+function TypingQuote() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "0px 0px -80px 0px" });
+  const [count, setCount] = useState(0);
+  const started = useRef(false);
+
   useEffect(() => {
-    if (!isInView) return;
-    const controls = animate(count, target, { duration: 1.6, ease: [0, 0, 0.2, 1] });
-    const unsub = rounded.on("change", setDisplay);
-    return () => { controls.stop(); unsub(); };
-  }, [isInView, target]);
-  return <>{display}</>;
+    if (!inView || started.current) return;
+    started.current = true;
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      setCount(i);
+      if (i >= FULL_TEXT.length) clearInterval(t);
+    }, 22);
+    return () => clearInterval(t);
+  }, [inView]);
+
+  const displayed = FULL_TEXT.slice(0, count);
+  const plainLen  = QUOTE_PLAIN.length;
+  const redEnd    = plainLen + QUOTE_RED.length;
+
+  return (
+    <div ref={ref} className="relative max-w-2xl mx-auto text-center px-12">
+      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-px bg-gradient-to-r from-[#FF0000] to-transparent" />
+      <span className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-px bg-gradient-to-l from-[#FF0000] to-transparent" />
+      <p className="text-xl md:text-2xl font-light italic text-[rgba(255,255,255,0.80)] leading-relaxed min-h-[6rem]">
+        {/* Plain part */}
+        {displayed.slice(0, Math.min(count, plainLen))}
+        {/* Red part */}
+        {count > plainLen && (
+          <span className="text-[#FF0000]">
+            {displayed.slice(plainLen, Math.min(count, redEnd))}
+          </span>
+        )}
+        {/* End part */}
+        {count > redEnd && displayed.slice(redEnd)}
+        {/* Blinking cursor while typing */}
+        {count < FULL_TEXT.length && (
+          <span className="inline-block w-[2px] h-[1em] bg-[#FF0000] align-middle ml-0.5 animate-blink" />
+        )}
+      </p>
+    </div>
+  );
 }
 
-const SkillRing = memo(function SkillRing({ label, percentage, delay = 0, description }: {
-  label: string; percentage: number; delay?: number; description?: string;
-}) {
-  const { enable3DTilt } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-10px" });
-  const [hovered, setHovered] = useState(false);
+// ── Skill Rings ───────────────────────────────────────────────────────────
+const RINGS = [
+  { label: "UI Design",      value: 85, sub: "Visual design, dashboards & interfaces" },
+  { label: "UX Research",    value: 78, sub: "User interviews, workshops & analysis" },
+  { label: "Prototyping",    value: 82, sub: "Interactive flows, Figma & Framer" },
+  { label: "AI-Assisted UX", value: 70, sub: "ChatGPT & AI tools for research" },
+];
 
-  const SIZE = 120;
-  const CENTER = SIZE / 2;
-  const RADIUS = 48;
-  const STROKE = 5;
-  const circ = 2 * Math.PI * RADIUS;
-  const offset = circ - (percentage / 100) * circ;
-  const gradId = `g-${label.replace(/\s/g, "")}`;
+function SkillRing({ label, value, sub, idx }: { label: string; value: number; sub: string; idx: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  const [count, setCount] = useState(0);
+  const C = 2 * Math.PI * 52;
+  const offset = inView ? C - (count / 100) * C : C;
 
-  // Tip dot position
-  const angle = -90 + (percentage / 100) * 360;
-  const rad = (angle * Math.PI) / 180;
-  const tx = CENTER + RADIUS * Math.cos(rad);
-  const ty = CENTER + RADIUS * Math.sin(rad);
+  useEffect(() => {
+    if (!inView) return;
+    let raf: number;
+    const start = performance.now();
+    const tick = (t: number) => {
+      const p = Math.min((t - start) / 1600, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setCount(Math.round(eased * value));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, value]);
+
+  const angle = (count / 100) * 360 - 90;
+  const tipX = 64 + Math.cos((angle * Math.PI) / 180) * 52;
+  const tipY = 64 + Math.sin((angle * Math.PI) / 180) * 52;
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30, scale: 0.88 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.6, delay, ease: [0, 0, 0.2, 1] }}
-      onHoverStart={() => !reduceEffects && setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      className="flex flex-col items-center gap-4 group cursor-default"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: idx * 0.1 }}
+      className="hud-card group relative bg-[#030303] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,0,0,0.40)] p-6 text-center overflow-hidden cursor-pointer"
     >
-      <motion.div
-        whileHover={reduceEffects ? {} : { scale: 1.1 }}
-        transition={{ type: "spring", stiffness: 280, damping: 22 }}
-        className="relative flex items-center justify-center"
-        style={{ width: SIZE, height: SIZE }}
-      >
-        {/* Ambient glow */}
-        <motion.div
-          animate={{ scale: hovered ? [1, 1.2, 1] : [1, 1.1, 1], opacity: hovered ? [0.4, 0.65, 0.4] : [0.08, 0.2, 0.08] }}
-          transition={{ duration: hovered ? 1.2 : 3, repeat: Infinity }}
-          className="absolute inset-0 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,0,0,0.35) 0%, transparent 70%)" }}
+      <HudCorners />
+      <span className="hud-orbit" aria-hidden />
+
+      {/* ACTIVE badge on hover */}
+      <span className="status-badge-hover status-active absolute top-2 right-2 z-10">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#FF0000] animate-pulse-red" />
+        ACTIVE
+      </span>
+
+      {/* Shimmer */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none overflow-hidden">
+        <div className="absolute -inset-y-2 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shimmer" />
+      </div>
+      <div className="absolute inset-0 scanlines opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none" />
+
+      {/* Ring */}
+      <div className="relative w-32 h-32 mx-auto mb-4 transition-transform duration-500 group-hover:scale-110">
+        <div className="absolute inset-0 bg-[rgba(255,0,0,0.10)] blur-2xl group-hover:bg-[rgba(255,0,0,0.40)] transition-all duration-500" />
+        <div
+          className="absolute inset-[-8px] border border-[rgba(255,0,0,0)] group-hover:border-[rgba(255,0,0,0.30)] rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-rotate-slow transition-all duration-500"
+          style={{ borderStyle: "dashed" }}
         />
-
-        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute"
-          style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
+        <svg className="relative w-32 h-32 -rotate-90" viewBox="0 0 128 128">
+          <circle cx="64" cy="64" r="52" stroke="rgba(255,255,255,0.06)" strokeWidth="6" fill="none" />
           <defs>
-            <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF6666" />
-              <stop offset="50%" stopColor="#FF0000" />
-              <stop offset="100%" stopColor="#CC0000" />
+            <linearGradient id={`g-${idx}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ff4444" />
+              <stop offset="100%" stopColor="#cc0000" />
             </linearGradient>
-            {/* Glow filter — desktop non-Safari only */}
-            {!reduceEffects && (
-              <filter id={`glow-${label.replace(/\s/g, "")}`} x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="2.5" result="blur" />
-                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-            )}
           </defs>
-
-          {/* Track */}
-          <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={STROKE} />
-          <circle cx={CENTER} cy={CENTER} r={RADIUS - STROKE - 2} fill="none" stroke="rgba(255,0,0,0.04)" strokeWidth={1} />
-
-          {/* Glow arc — desktop non-Safari only */}
-          {!reduceEffects && (
-            <motion.circle
-              cx={CENTER} cy={CENTER} r={RADIUS}
-              fill="none" stroke="rgba(255,0,0,0.35)" strokeWidth={STROKE + 4}
-              strokeLinecap="round" strokeDasharray={`${circ} ${circ}`}
-              initial={{ strokeDashoffset: circ }}
-              animate={isInView ? { strokeDashoffset: offset } : {}}
-              transition={{ duration: 1.6, delay, ease: [0.16, 1, 0.3, 1] }}
-              filter={`url(#glow-${label.replace(/\s/g, "")})`}
-              style={{ opacity: hovered ? 0.65 : 0.35 }}
-            />
-          )}
-
-          {/* Main arc */}
-          <motion.circle
-            cx={CENTER} cy={CENTER} r={RADIUS}
-            fill="none" stroke={`url(#${gradId})`}
-            strokeWidth={STROKE} strokeLinecap="round"
-            strokeDasharray={`${circ} ${circ}`}
-            initial={{ strokeDashoffset: circ }}
-            animate={isInView ? { strokeDashoffset: offset } : {}}
-            transition={{ duration: 1.6, delay, ease: [0.16, 1, 0.3, 1] }}
+          <circle
+            cx="64" cy="64" r="52"
+            stroke={`url(#g-${idx})`}
+            strokeWidth="6"
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={C}
+            strokeDashoffset={offset}
+            style={{ transition: "stroke-dashoffset 1.6s cubic-bezier(0.22,1,0.36,1)" }}
           />
-
-          {/* Tip dot */}
-          {isInView && (
-            <motion.circle
-              cx={tx} cy={ty} r={3}
-              fill="white"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: [0, 1.4, 1] }}
-              transition={{ delay: delay + 1.5, duration: 0.4 }}
-              filter={!reduceEffects ? `url(#glow-${label.replace(/\s/g, "")})` : undefined}
-            />
+          {inView && (
+            <circle cx={tipX} cy={tipY} r="3.5" fill="#ff4444" />
           )}
         </svg>
-
-        {/* Center % */}
-        <motion.div
-          animate={{ scale: hovered ? 1.06 : 1 }}
-          transition={{ type: "spring", stiffness: 280 }}
-          className="relative z-10 flex flex-col items-center"
-        >
-          <span className="text-xl font-black text-white leading-none tabular-nums">
-            <Counter target={percentage} isInView={isInView} />%
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="font-mono text-2xl font-black text-white">
+            {count}<span className="text-[#FF0000]">%</span>
           </span>
-        </motion.div>
-      </motion.div>
-
-      <div className="text-center">
-        <motion.p
-          animate={{ color: hovered ? "#FF0000" : "rgba(255,255,255,0.85)" }}
-          transition={{ duration: 0.2 }}
-          className="font-semibold text-sm"
-        >
-          {label}
-        </motion.p>
-        {description && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: delay + 0.8 }}
-            className="text-white/30 text-[10px] mt-0.5 max-w-[110px] leading-tight"
-          >
-            {description}
-          </motion.p>
-        )}
+        </div>
       </div>
+
+      <h4 className="font-bold group-hover:text-[#FF0000] transition-colors">{label}</h4>
+      <p className="text-xs text-[rgba(255,255,255,0.55)] mt-1">{sub}</p>
     </motion.div>
   );
-});
+}
 
-const ToolPill = memo(function ToolPill({ name, url, index, primary }: { name: string; url: string; index: number; primary?: boolean }) {
-  const { enable3DTilt } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
-  return (
-    <motion.a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      initial={{ opacity: 0, scale: 0.8, y: 8 }}
-      whileInView={{ opacity: 1, scale: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.07, duration: 0.35 }}
-      whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
-      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-        primary
-          ? "bg-[#FF0000]/15 border border-[#FF0000]/40 text-white hover:bg-[#FF0000]/25 hover:border-[#FF0000]/60"
-          : "bg-white/5 border border-white/10 text-white/70 hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8"
-      }`}
-    >
-      {primary && <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />}
-      {name}
-      {primary && <span className="text-[#FF0000]/70 text-[9px] font-semibold uppercase tracking-wider ml-0.5">Primary</span>}
-    </motion.a>
-  );
-});
+// ── Tool cards ────────────────────────────────────────────────────────────
+type Pill = {
+  name: string;
+  url: string;
+  primary?: boolean;
+  label?: string;
+};
 
-const coreSkills = [
-  { label: "UI Design", percentage: 85, description: "Visual design, dashboards & interfaces" },
-  { label: "UX Research", percentage: 78, description: "User interviews, workshops & analysis" },
-  { label: "Prototyping", percentage: 82, description: "Interactive flows, Figma & Framer" },
-  { label: "AI-Assisted UX", percentage: 70, description: "ChatGPT & AI tools for research" },
+type Tool = {
+  Icon: ElementType;
+  title: string;
+  sub: string;
+  badge: { text: string; color: string } | null;
+  sparkle?: boolean;
+  purpleDot?: boolean;
+  pills: Pill[];
+};
+
+const TOOLS: Tool[] = [
+  {
+    Icon: Wrench,
+    title: "Tools I Use",
+    sub: "Design & Prototyping",
+    badge: null,
+    pills: [
+      { name: "Figma",      primary: true, label: "Primary", url: "https://figma.com" },
+      { name: "Framer",     url: "https://framer.com" },
+      { name: "WIX Studio", url: "https://wix.com/studio" },
+      { name: "V0",         url: "https://v0.dev" },
+    ],
+  },
+  {
+    Icon: Bot,
+    title: "AI Tools",
+    sub: "Modern UX Research",
+    badge: { text: "Active", color: "text-green-400 border-green-500/40 bg-green-500/10" },
+    sparkle: true,
+    pills: [
+      { name: "ChatGPT",  url: "https://chatgpt.com" },
+      { name: "Gemini",   url: "https://gemini.google.com" },
+      { name: "Claude",   url: "https://claude.ai" },
+      { name: "Loveable", url: "https://lovable.dev" },
+    ],
+  },
+  {
+    Icon: Code,
+    title: "IDE",
+    sub: "Code Editors",
+    badge: { text: "Main", color: "text-blue-400 border-blue-500/40 bg-blue-500/10" },
+    pills: [
+      { name: "Kiro",    primary: true, url: "https://kiro.dev" },
+      { name: "VS Code", url: "https://code.visualstudio.com" },
+    ],
+  },
+  {
+    Icon: Users,
+    title: "Collaboration",
+    sub: "Handoff & Communication",
+    badge: { text: "Collab", color: "text-purple-400 border-purple-500/40 bg-purple-500/10" },
+    purpleDot: true,
+    sparkle: true,
+    pills: [
+      { name: "GitHub",           url: "https://github.com" },
+      { name: "Microsoft Teams",  url: "https://teams.microsoft.com" },
+      { name: "Google Meet",      url: "https://meet.google.com" },
+      { name: "Zoom",             url: "https://zoom.us" },
+    ],
+  },
 ];
 
-const tools = [
-  { name: "Figma", url: "https://figma.com", primary: true },
-  { name: "Framer", url: "https://framer.com" },
-  { name: "WIX Studio", url: "https://wix.com/studio" },
-  { name: "V0", url: "https://v0.dev" },
-];
-const aiTools = [
-  { name: "ChatGPT", url: "https://chatgpt.com" },
-  { name: "Gemini", url: "https://gemini.google.com" },
-  { name: "Claude", url: "https://claude.ai" },
-  { name: "Loveable", url: "https://lovable.dev" },
-];
-const ideTools = [
-  { name: "Kiro", url: "https://kiro.dev", primary: true },
-  { name: "VS Code", url: "https://code.visualstudio.com" },
-];
-const collabTools = [
-  { name: "GitHub", url: "https://github.com" },
-  { name: "Microsoft Teams", url: "https://teams.microsoft.com" },
-  { name: "Google Meet", url: "https://meet.google.com" },
-  { name: "Zoom", url: "https://zoom.us" },
+// ── Process steps ─────────────────────────────────────────────────────────
+const STEPS = [
+  {
+    code: "01 INIT", status: "COMPLETE" as const, title: "Human Research",
+    desc: "Human-first investigation before any tool is opened.",
+    bullets: ["User interviews & observation", "Reading papers & case studies", "Documenting all gathered insights", "Identifying pain points & patterns"],
+  },
+  {
+    code: "02 PROC", status: "COMPLETE" as const, title: "AI Enhancement",
+    desc: "AI amplifies research — never replaces it.",
+    bullets: ["Enhance & validate findings with AI", "UX & design architecture recommendations", "Competitive analysis support", "Synthesize large research into insights"],
+  },
+  {
+    code: "03 SYNC", status: "COMPLETE" as const, title: "Stakeholder Sync",
+    desc: "Align with everyone before touching Figma.",
+    bullets: ["Present findings to client", "Collaborate with dev team", "Identify what needs to change", "Agree on scope & priorities"],
+  },
+  {
+    code: "04 DSGN", status: "ACTIVE" as const, title: "Figma Design",
+    desc: "Research-backed design, not guesswork.",
+    bullets: ["Wireframes → hi-fi UI", "Component-based design system", "Interactive prototype flows", "Design decisions tied to research"],
+  },
+  {
+    code: "05 PLSH", status: "QUEUED" as const, title: "Kiro Polish",
+    desc: "Import design, optimize & enhance before development.",
+    bullets: ["Import Figma to code", "Refine animations & interactions", "Performance optimization", "Accessibility review"],
+  },
+  {
+    code: "06 HNDOFF", status: "QUEUED" as const, title: "Dev Handoff",
+    desc: "Final polished design ready for development.",
+    bullets: ["Export assets & specs", "Document component library", "Final QA review", "Hand off to development"],
+  },
 ];
 
+// ── Skills section ────────────────────────────────────────────────────────
 export function Skills() {
-  const { enable3DTilt } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, margin: "-10px" });
+  const { sectionRef, glowRef } = useSectionGlow<HTMLElement>();
 
   return (
-    <section ref={sectionRef} className="py-24 bg-[#050505] relative overflow-hidden border-t border-white/5">
-      {/* Bg orb — box-shadow instead of blur, skip on Safari */}
-      {!reduceEffects && (
+    <section ref={sectionRef} id="skills" className="relative py-24 bg-[#050505] overflow-hidden">
+      <div ref={glowRef} className="section-glow" aria-hidden />
+      <div className="absolute inset-0 bg-grid opacity-20" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative space-y-20">
+
+        {/* Header */}
         <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full pointer-events-none"
-          style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.05)", background: "transparent" }}
-        />
-      )}
-
-      {/* Floating particles — desktop non-Safari only */}
-      {!reduceEffects && [0, 1, 2, 3, 4, 5].map((i) => (
-        <motion.div key={i}
-          aria-hidden="true"
-          animate={{ y: [0, -20, 0], opacity: [0, 0.25, 0] }}
-          transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.6 }}
-          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
-          style={{ left: `${8 + i * 16}%`, top: `${20 + (i % 4) * 20}%` }}
-        />
-      ))}
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 space-y-20">
-
-        {/* Core Skills */}
-        <div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.55 }} className="text-center mb-12 space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/60 border border-[#FF0000]/20 rounded font-mono">
-              <motion.div animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                className="w-1.5 h-1.5 rounded-full bg-[#FF0000]" />
-              <Brain size={12} className="text-[#FF0000]" />
-              <span className="text-[#FF0000] text-[10px] font-bold uppercase tracking-[0.2em]">SKILLS.EXE</span>
-              <span className="text-white/20 text-[10px]">// CORE_SKILLS</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">What I Bring to the Table</h2>
-            <motion.div initial={{ scaleX: 0 }} animate={isInView ? { scaleX: 1 } : {}}
-              transition={{ delay: 0.3, duration: 0.5 }} style={{ originX: 0.5 }}
-              className="w-12 h-[2px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mx-auto rounded-full" />
-          </motion.div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 justify-items-center">
-            {coreSkills.map((s, i) => <SkillRing key={s.label} {...s} delay={i * 0.14} />)}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center space-y-4"
+        >
+          <SectionBadge name="SKILLS.EXE" comment="CORE_SKILLS" />
+          <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gradient-white">
+            What I Bring to the Table
+          </h2>
+          <div className="max-w-xs mx-auto">
+            <RedDivider />
           </div>
+        </motion.div>
 
-          {/* Quote with animated accents */}
-          <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ delay: 0.2 }}
-            className="mt-10 max-w-2xl mx-auto text-center">
-            <div className="relative px-6 py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl">
-              {/* Animated accent lines — desktop non-Safari only */}
-              {!reduceEffects && (
-                <>
-                  <motion.div
-                    animate={{ height: ["0%", "100%", "0%"] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute left-0 top-0 w-[2px] bg-gradient-to-b from-transparent via-[#FF0000] to-transparent rounded-full"
-                  />
-                  <motion.div
-                    animate={{ height: ["0%", "100%", "0%"] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                    className="absolute right-0 top-0 w-[2px] bg-gradient-to-b from-transparent via-[#FF0000] to-transparent rounded-full"
-                  />
-                </>
-              )}
-              <p className="text-white/55 text-sm leading-relaxed italic">
-                "I start with human research, validate with data, and use AI as a tool — not a shortcut — to design{" "}
-                <span className="text-white/85 font-medium not-italic">experiences that are intentional, accessible, and real.</span>"
-              </p>
-            </div>
-          </motion.div>
+        {/* Skill rings */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {RINGS.map((r, i) => (
+            <SkillRing key={r.label} {...r} idx={i} />
+          ))}
         </div>
 
-        {/* Tools & AI */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Tools */}
-          <motion.div initial={{ opacity: 0, x: -25 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.4 }}
-            className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-5">
-                <motion.div whileHover={reduceEffects ? {} : { rotate: 18 }}
-                  className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
-                  <Wrench size={15} className="text-[#FF0000]" />
-                </motion.div>
-                <div>
-                  <h3 className="text-white font-bold text-sm">Tools I Use</h3>
-                  <p className="text-white/35 text-xs">Design & Prototyping</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {tools.map((t, i) => <ToolPill key={t.name} name={t.name} url={t.url} index={i} primary={t.primary} />)}
-              </div>
-            </div>
-          </motion.div>
+        {/* Quote */}
+        <TypingQuote />
 
-          {/* AI Tools */}
-          <motion.div initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.4, delay: 0.05 }}
-            className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
-            {/* Shimmer — desktop non-Safari only */}
-            {!reduceEffects && (
-              <motion.div
-                animate={{ x: ["-100%", "200%"] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
-                className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-[#FF0000]/5 to-transparent skew-x-12 pointer-events-none"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-bl from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-5">
-                <motion.div
-                  animate={reduceEffects ? {} : { rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
-                  <Bot size={15} className="text-[#FF0000]" />
-                </motion.div>
-                <div>
-                  <h3 className="text-white font-bold text-sm">AI Tools</h3>
-                  <p className="text-white/35 text-xs">Modern UX Research</p>
+        {/* Tool cards */}
+        <div className="grid md:grid-cols-2 gap-5">
+          {TOOLS.map((t, i) => (
+            <motion.div
+              key={t.title}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className="group relative bg-[#030303] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,0,0,0.40)] p-6 transition-all overflow-hidden"
+            >
+              <HudCorners />
+              {t.sparkle && (
+                <div className="absolute -inset-1 opacity-0 group-hover:opacity-100 overflow-hidden pointer-events-none">
+                  <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
                 </div>
-                <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}
-                  className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                  <span className="text-green-400 text-[9px] font-semibold uppercase tracking-wider">Active</span>
-                </motion.div>
+              )}
+
+              <div className="relative flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-11 h-11 bg-[#0a0000] border border-[rgba(255,0,0,0.35)] group-hover:border-[#FF0000] flex items-center justify-center transition-all duration-300 overflow-hidden shrink-0">
+                    {/* Corner brackets */}
+                    <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#FF0000]" />
+                    <span className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#FF0000]" />
+                    <span className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#FF0000]" />
+                    <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#FF0000]" />
+                    {/* Glow bg on hover */}
+                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                      style={{ background: "radial-gradient(ellipse at center, rgba(255,0,0,0.18) 0%, transparent 75%)" }} />
+                    <t.Icon
+                      size={18}
+                      className="relative z-10 text-[#FF0000] transition-all duration-300 group-hover:scale-110"
+                      style={{ filter: "drop-shadow(0 0 5px rgba(255,0,0,0.65))" }}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">{t.title}</h4>
+                    <p className="text-xs text-[rgba(255,255,255,0.55)]">{t.sub}</p>
+                  </div>
+                </div>
+                {t.badge && (
+                  <span className={`font-mono text-[9px] uppercase tracking-widest px-2 py-1 border ${t.badge.color}`}>
+                    {t.badge.text}
+                  </span>
+                )}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {aiTools.map((t, i) => (
-                  <motion.a
-                    key={t.name}
-                    href={t.url}
+
+              <div className="relative flex flex-wrap gap-2">
+                {t.pills.map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.09 }}
-                    whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
-                    className="px-4 py-2 bg-[#FF0000]/8 border border-[#FF0000]/20 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/50 hover:text-white hover:bg-[#FF0000]/15 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Sparkles size={9} className="text-[#FF0000]" />
-                    {t.name}
-                  </motion.a>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* IDE Tools */}
-          <motion.div initial={{ opacity: 0, x: 25 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.4, delay: 0.1 }}
-            className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-5">
-                <motion.div whileHover={reduceEffects ? {} : { rotate: -18 }}
-                  className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
-                  <Code size={15} className="text-[#FF0000]" />
-                </motion.div>
-                <div>
-                  <h3 className="text-white font-bold text-sm">IDE</h3>
-                  <p className="text-white/35 text-xs">Code Editors</p>
-                </div>
-                <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
-                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
-                  <span className="text-blue-400 text-[9px] font-semibold uppercase tracking-wider">Main</span>
-                </motion.div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {ideTools.map((t, i) => (
-                  <motion.a
-                    key={t.name}
-                    href={t.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    initial={{ opacity: 0, scale: 0.8, y: 8 }}
-                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.09 }}
-                    whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-                      t.primary
-                        ? "bg-[#FF0000]/15 border border-[#FF0000]/40 text-white hover:bg-[#FF0000]/25 hover:border-[#FF0000]/60"
-                        : "bg-white/5 border border-white/10 text-white/70 hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8"
+                    className={`group/pill relative inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs border transition-all hover:-translate-y-0.5 hover:scale-105 ${
+                      p.primary
+                        ? "bg-[#1a0000] text-[rgba(255,255,255,0.85)] border-[rgba(255,0,0,0.35)] hover:border-[rgba(255,0,0,0.6)] hover:bg-[#2a0000]"
+                        : "bg-[#080808] border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.55)] hover:border-[#FF0000] hover:text-white hover:shadow-[0_0_18px_rgba(255,0,0,0.35)]"
                     }`}
                   >
-                    {t.primary && <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />}
-                    {t.name}
-                    {t.primary && <span className="text-[#FF0000]/70 text-[9px] font-semibold uppercase tracking-wider ml-0.5">Primary</span>}
-                  </motion.a>
+                    {t.sparkle && <Sparkles size={10} />}
+                    {t.purpleDot && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    )}
+                    {p.primary && !t.sparkle && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF0000] animate-pulse" />
+                    )}
+                    {p.name}
+                    {p.label && (
+                      <span className="text-[9px] opacity-80">({p.label})</span>
+                    )}
+                    {/* Hover badge */}
+                    <span
+                      className={`absolute -top-2 -right-2 opacity-0 scale-75 translate-y-1 group-hover/pill:opacity-100 group-hover/pill:scale-100 group-hover/pill:translate-y-0 transition-all inline-flex items-center gap-1 font-mono text-[8px] tracking-widest px-1.5 py-0.5 border pointer-events-none whitespace-nowrap ${
+                        p.primary ? "status-complete" : "status-online"
+                      }`}
+                    >
+                      <span className={`w-1 h-1 rounded-full ${p.primary ? "bg-green-400" : "bg-blue-400"} animate-pulse`} />
+                      {p.primary ? "COMPLETE" : "ONLINE"}
+                    </span>
+                  </a>
                 ))}
               </div>
-            </div>
-          </motion.div>
-
-          {/* Collaboration Tools */}
-          <motion.div initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.4, delay: 0.15 }}
-            className="relative p-6 bg-white/[0.03] border border-white/[0.08] rounded-3xl overflow-hidden group">
-            {/* Shimmer — desktop non-Safari only */}
-            {!reduceEffects && (
-              <motion.div
-                animate={{ x: ["-100%", "200%"] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 3 }}
-                className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-[#FF0000]/5 to-transparent skew-x-12 pointer-events-none"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FF0000]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-5">
-                <motion.div
-                  animate={reduceEffects ? {} : { rotate: [0, 8, -8, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="p-2 bg-[#FF0000]/10 rounded-xl border border-[#FF0000]/20">
-                  <Users size={15} className="text-[#FF0000]" />
-                </motion.div>
-                <div>
-                  <h3 className="text-white font-bold text-sm">Collaboration</h3>
-                  <p className="text-white/35 text-xs">Handoff & Communication</p>
-                </div>
-                <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-                  className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full">
-                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
-                  <span className="text-purple-400 text-[9px] font-semibold uppercase tracking-wider">Collab</span>
-                </motion.div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {collabTools.map((t, i) => (
-                  <motion.a
-                    key={t.name}
-                    href={t.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    initial={{ opacity: 0, scale: 0.8, y: 8 }}
-                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.07 }}
-                    whileHover={reduceEffects ? {} : { scale: 1.08, y: -3 }}
-                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-white/70 text-sm font-medium hover:border-[#FF0000]/40 hover:text-white hover:bg-[#FF0000]/8 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <span className="w-1.5 h-1.5 bg-purple-400/60 rounded-full" />
-                    {t.name}
-                  </motion.a>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Research-Driven Design Process — Game HUD Style */}
-        <div>
-          {/* Header */}
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.55 }}
-            className="text-center mb-10 space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF0000]/10 border border-[#FF0000]/20 rounded-full">
-              <Sparkles size={12} className="text-[#FF0000]" />
-              <span className="text-[#FF0000] text-xs font-semibold uppercase tracking-widest">My Process</span>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Research-Driven Design Process</h2>
-            <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.5 }} style={{ originX: 0.5 }}
-              className="w-12 h-[2px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mx-auto rounded-full" />
+        {/* Process panel */}
+        <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center space-y-3"
+          >
+            <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#FF0000] border border-[rgba(255,0,0,0.20)] px-3 py-1.5">
+              <Sparkles size={10} />
+              My Process
+            </span>
+            <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-gradient-white">
+              Research-Driven Design Process
+            </h3>
           </motion.div>
 
-          {/* HUD Panel */}
-          <div className="relative w-full">
+          <div className="relative bg-[#030303] border border-[rgba(255,0,0,0.20)] p-1">
+            <HudCorners />
+            <div className="absolute inset-0 scanlines opacity-20 pointer-events-none" />
 
-            {/* Outer HUD frame */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative border border-[#FF0000]/20 rounded-2xl p-4 sm:p-6 lg:p-8 bg-black/40 overflow-hidden w-full"
-            >
-              {/* Corner brackets */}
-              {[
-                "top-0 left-0 border-t-2 border-l-2 rounded-tl-2xl",
-                "top-0 right-0 border-t-2 border-r-2 rounded-tr-2xl",
-                "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-2xl",
-                "bottom-0 right-0 border-b-2 border-r-2 rounded-br-2xl",
-              ].map((cls, i) => (
-                <div key={i} className={`absolute w-6 h-6 border-[#FF0000]/60 ${cls}`} />
-              ))}
-
-              {/* Scanline overlay */}
-              {!reduceEffects && (
-                <div
-                  className="absolute inset-0 pointer-events-none rounded-2xl opacity-[0.03]"
-                  style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 3px)", backgroundSize: "100% 3px" }}
-                />
-              )}
-
+            <div className="relative bg-[#050505] p-6 md:p-10">
               {/* HUD top bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-6 pb-3 border-b border-[#FF0000]/10">
-                <div className="flex items-center gap-2">
-                  <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
-                    className="w-2 h-2 rounded-full bg-[#FF0000]" />
-                  <span className="text-[#FF0000] text-xs sm:text-sm font-mono font-bold uppercase tracking-[0.2em]">DESIGN_PROCESS.exe</span>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <span className="text-white/20 text-[10px] sm:text-xs font-mono">STEPS: 06/06</span>
-                  <span className="text-white/20 text-[10px] sm:text-xs font-mono hidden sm:block">STATUS: ACTIVE</span>
-                  <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }}
-                    className="text-green-400 text-[10px] sm:text-xs font-mono">■ ONLINE</motion.div>
-                </div>
+              <div className="flex items-center justify-between font-mono text-xs uppercase tracking-widest mb-8 pb-5 border-b border-[rgba(255,255,255,0.08)] flex-wrap gap-2">
+                <span className="flex items-center gap-2 text-[#FF0000]">
+                  <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full animate-pulse-red" />
+                  DESIGN_PROCESS.exe
+                </span>
+                <span className="text-[rgba(255,255,255,0.55)]">STEPS: 06/06</span>
+                <span className="text-green-400">■ ONLINE</span>
               </div>
 
-              {/* Step cards grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-                {[
-                  { step: "01", code: "INIT", label: "Human Research", icon: "🔍", status: "COMPLETE", color: "green",
-                    desc: "Human-first investigation before any tool is opened.",
-                    bullets: ["User interviews & observation", "Reading papers & case studies", "Documenting all gathered insights", "Identifying pain points & patterns"] },
-                  { step: "02", code: "PROC", label: "AI Enhancement", icon: "🤖", status: "COMPLETE", color: "green",
-                    desc: "AI amplifies research — never replaces it.",
-                    bullets: ["Enhance & validate findings with AI", "UX & design architecture recommendations", "Competitive analysis support", "Synthesize large research into insights"] },
-                  { step: "03", code: "SYNC", label: "Stakeholder Sync", icon: "🤝", status: "COMPLETE", color: "green",
-                    desc: "Align with everyone before touching Figma.",
-                    bullets: ["Present findings to client", "Collaborate with dev team", "Identify what needs to change", "Agree on scope & priorities"] },
-                  { step: "04", code: "DSGN", label: "Figma Design", icon: "🎨", status: "ACTIVE", color: "red",
-                    desc: "Research-backed design, not guesswork.",
-                    bullets: ["Wireframes → hi-fi UI", "Component-based design system", "Interactive prototype flows", "Design decisions tied to research"] },
-                  { step: "05", code: "PLSH", label: "Kiro Polish", icon: "✨", status: "QUEUED", color: "yellow",
-                    desc: "Final quality pass before dev picks it up.",
-                    bullets: ["Import design file into Kiro", "Optimize & enhance visuals", "Polish micro-interactions & spacing", "Validate design before handoff"] },
-                  { step: "06", code: "HNDOFF", label: "Dev Handoff", icon: "🚀", status: "QUEUED", color: "yellow",
-                    desc: "Clean, documented, ready to build.",
-                    bullets: ["Annotated specs for developers", "Asset export & design tokens", "Support during implementation", "Feedback loop for adjustments"] },
-                ].map((item, i) => (
+              {/* Step cards */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {STEPS.map((s, i) => (
                   <motion.div
-                    key={item.step}
+                    key={s.code}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: i * 0.05, duration: 0.3 }}
-                    whileHover={reduceEffects ? {} : { scale: 1.02 }}
-                    className="relative group bg-white/[0.02] border border-white/[0.06] rounded-xl p-5 sm:p-6 hover:border-[#FF0000]/30 hover:bg-[#FF0000]/[0.03] transition-all duration-300 cursor-default overflow-hidden"
+                    transition={{ delay: i * 0.08 }}
+                    className="group relative bg-[#030303] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,0,0,0.40)] p-7 transition-all"
                   >
-                    {/* Card corner accent */}
-                    <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[#FF0000]/30 rounded-tl-xl" />
-                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-[#FF0000]/30 rounded-br-xl" />
-
-                    {/* Top row: step code + status badge */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#FF0000]/50 text-xs sm:text-sm font-mono font-bold">[{item.step}]</span>
-                        <span className="text-white/20 text-xs sm:text-sm font-mono">{item.code}</span>
-                      </div>
-                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] sm:text-xs font-mono font-bold uppercase ${
-                        item.color === "green" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
-                        item.color === "red"   ? "bg-[#FF0000]/10 text-[#FF4444] border border-[#FF0000]/20" :
-                                                 "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
-                      }`}>
-                        <motion.span
-                          animate={item.color === "red" ? { opacity: [1, 0.3, 1] } : {}}
-                          transition={{ duration: 0.8, repeat: Infinity }}
-                          className="w-1.5 h-1.5 rounded-full bg-current"
-                        />
-                        {item.status}
-                      </div>
+                    <HudCorners />
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="font-mono text-xs text-[#FF0000] tracking-widest">{s.code}</span>
+                      <StatusBadge status={s.status} />
                     </div>
-
-                    {/* Icon + label */}
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">{item.icon}</span>
-                      <p className="text-white font-bold text-sm sm:text-base group-hover:text-[#FF4444] transition-colors duration-200 font-mono">{item.label}</p>
-                    </div>
-
-                    {/* Desc */}
-                    <p className="text-white/40 text-xs sm:text-sm leading-snug mb-3 font-mono">{item.desc}</p>
-
-                    {/* Divider */}
-                    <div className="w-full h-px bg-[#FF0000]/10 mb-3" />
-
-                    {/* Bullets */}
-                    <ul className="space-y-1.5">
-                      {item.bullets.map((b, bi) => (
-                        <li key={bi} className="flex items-start gap-2 text-white/40 text-xs sm:text-sm leading-snug font-mono">
-                          <span className="text-[#FF0000]/50 shrink-0 mt-0.5">▸</span>
+                    <h4 className="text-lg font-bold mb-2 group-hover:text-[#FF0000] transition-colors">{s.title}</h4>
+                    <p className="text-sm text-[rgba(255,255,255,0.55)] mb-4 italic">{s.desc}</p>
+                    <ul className="space-y-2 text-sm">
+                      {s.bullets.map((b) => (
+                        <li key={b} className="flex gap-2 text-[rgba(255,255,255,0.55)]">
+                          <span className="text-[#FF0000]">▸</span>
                           {b}
                         </li>
                       ))}
@@ -612,16 +445,18 @@ export function Skills() {
                 ))}
               </div>
 
-              {/* HUD bottom bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mt-6 pt-3 border-t border-[#FF0000]/10">
-                <span className="text-white/20 text-xs sm:text-sm font-mono">RHENMART_DELACRUZ // UX/UI DESIGNER // PRODUCT DESIGNER</span>
-                <motion.span animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 2, repeat: Infinity }}
-                  className="text-[#FF0000]/50 text-xs sm:text-sm font-mono">DESIGNER_READY</motion.span>
+              {/* Bottom bar */}
+              <div className="mt-8 pt-5 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between font-mono text-xs uppercase tracking-widest flex-wrap gap-2">
+                <span className="text-[rgba(255,255,255,0.55)]">
+                  RHENMART_DELACRUZ // UX/UI DESIGNER // PRODUCT DESIGNER
+                </span>
+                <span className="border-2 border-[rgba(255,0,0,0.30)] text-white px-2 py-1 animate-border-pulse">
+                  DESIGNER_READY
+                </span>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
-
       </div>
     </section>
   );

@@ -1,4 +1,7 @@
 node_modules
 dist
 commission-agreement.html
+.env
+.env.local
+.env.*.local
 

@@ -2,9 +2,392 @@
 @import './tailwind.css';
 @import './theme.css';
 
-/* ── RETRO GAME / HUD ANIMATIONS ─────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   PORTFOLIO DESIGN SYSTEM — SINGLE SOURCE OF TRUTH
+   ══════════════════════════════════════════════════════════════════════════ */
 
-/* Glitch text effect */
+/* ── CSS Custom Properties ─────────────────────────────────────────────── */
+:root {
+  /* Background scale */
+  --bg-primary:   #030303;
+  --bg-secondary: #050505;
+  --bg-tertiary:  #080808;
+  --card-soft:    rgba(255,255,255,0.03);
+
+  /* Accent */
+  --accent:       #FF0000;
+  --accent-light: #FF4444;
+  --accent-dark:  #CC0000;
+
+  /* Text */
+  --muted-55: rgba(255,255,255,0.55);
+  --muted-30: rgba(255,255,255,0.30);
+
+  /* Borders */
+  --border-soft: rgba(255,255,255,0.08);
+  --soft:        rgba(255,255,255,0.08);
+  --red-soft:    rgba(255,0,0,0.20);
+
+  /* HUD timing */
+  --hud-fast: 150ms;
+  --hud-mid:  300ms;
+  --hud-slow: 600ms;
+}
+
+/* ── Tailwind-compatible color utilities ───────────────────────────────── */
+.bg-bg-primary    { background-color: var(--bg-primary); }
+.bg-bg-secondary  { background-color: var(--bg-secondary); }
+.bg-bg-tertiary   { background-color: var(--bg-tertiary); }
+.bg-card-soft     { background-color: var(--card-soft); }
+.text-accent      { color: var(--accent); }
+.text-accent-light { color: var(--accent-light); }
+.text-muted-55    { color: var(--muted-55); }
+.text-muted-30    { color: var(--muted-30); }
+.border-soft      { border-color: var(--border-soft); }
+.border-red-soft  { border-color: var(--red-soft); }
+.bg-accent        { background-color: var(--accent); }
+.bg-accent-light  { background-color: var(--accent-light); }
+.bg-accent-dark   { background-color: var(--accent-dark); }
+.hover\:bg-accent-light:hover { background-color: var(--accent-light); }
+
+/* ── Typography ────────────────────────────────────────────────────────── */
+.text-gradient-white {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.5) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-red {
+  background: linear-gradient(90deg, #FF0000, #FF4444, #FF0000);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.text-stroke {
+  -webkit-text-stroke: 1px rgba(255,255,255,0.25);
+  color: transparent;
+}
+
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(255,0,0,0.6), 0 0 40px rgba(255,0,0,0.3);
+}
+
+/* ── Glow utilities ────────────────────────────────────────────────────── */
+.red-glow        { box-shadow: 0 0 20px rgba(255,0,0,0.35), 0 0 40px rgba(255,0,0,0.15); }
+.red-glow-strong { box-shadow: 0 0 30px rgba(255,0,0,0.55), 0 0 60px rgba(255,0,0,0.25); }
+.depth-shadow    { box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3); }
+
+/* ── Cut-corner shape ──────────────────────────────────────────────────── */
+.cut-corner {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+.cut-corner-lg {
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+/* ── Background patterns ───────────────────────────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255,0,0,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,0,0,0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.holo {
+  background: radial-gradient(ellipse at 20% 50%, rgba(255,0,0,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(255,68,68,0.03) 0%, transparent 50%);
+}
+
+.crt-vignette {
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%);
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.12) 2px,
+    rgba(0,0,0,0.12) 4px
+  );
+}
+
+/* ── 3D / Perspective ──────────────────────────────────────────────────── */
+.perspective-1500 { perspective: 1500px; }
+.preserve-3d      { transform-style: preserve-3d; }
+.tilt-3d          { transform-style: preserve-3d; }
+.tilt-layer       { transform: translateZ(20px); }
+
+/* ── Card flip ─────────────────────────────────────────────────────────── */
+.card-flip {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-flip.flipped {
+  transform: rotateY(180deg);
+}
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* ── CSS-only card flip (no JS hover state — eliminates jitter) ────────── */
+.card-flip-wrapper {
+  perspective: 1200px;
+}
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-flip-wrapper:hover .card-flip-inner {
+  transform: rotateY(180deg);
+}
+
+/* ── HUD card & orbit ring ─────────────────────────────────────────────── */
+.hud-card {
+  position: relative;
+}
+.hud-orbit {
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed rgba(255,0,0,0.15);
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--hud-mid);
+}
+.hud-card:hover .hud-orbit {
+  opacity: 1;
+  animation: rotateOrbit 8s linear infinite;
+}
+@keyframes rotateOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Status badges ─────────────────────────────────────────────────────── */
+.status-badge-hover {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 1px solid;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--hud-fast), transform var(--hud-fast);
+  pointer-events: none;
+}
+.hud-card:hover .status-badge-hover,
+.group:hover .status-badge-hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+.status-complete {
+  color: #4ade80;
+  border-color: rgba(74,222,128,0.3);
+  background: rgba(74,222,128,0.08);
+}
+.status-active {
+  color: var(--accent);
+  border-color: var(--red-soft);
+  background: rgba(255,0,0,0.08);
+}
+.status-online {
+  color: #60a5fa;
+  border-color: rgba(96,165,250,0.3);
+  background: rgba(96,165,250,0.08);
+}
+.status-queued {
+  color: #facc15;
+  border-color: rgba(250,204,21,0.3);
+  background: rgba(250,204,21,0.08);
+}
+
+/* ── Gradient border (spotlight effect) ───────────────────────────────── */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,0,0,0.4), transparent 50%, rgba(255,0,0,0.2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--hud-mid);
+  pointer-events: none;
+}
+.gradient-border:hover::before { opacity: 1; }
+
+/* Spotlight cursor effect */
+.spotlight {
+  position: relative;
+  overflow: hidden;
+  --spotlight-x: 50%;
+  --spotlight-y: 50%;
+}
+.spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--spotlight-x) var(--spotlight-y), rgba(255,0,0,0.12) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--hud-mid);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.spotlight:hover::after { opacity: 1; }
+
+/* ── HUD input ─────────────────────────────────────────────────────────── */
+.hud-input {
+  transition: border-color var(--hud-fast), box-shadow var(--hud-fast);
+}
+.hud-input:focus {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(255,0,0,0.2);
+}
+
+/* ── Section glow ──────────────────────────────────────────────────────── */
+.section-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,0,0,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* ── HUD glow target ───────────────────────────────────────────────────── */
+.hud-glow-target {
+  background: radial-gradient(circle at center, rgba(255,0,0,0.15) 0%, transparent 70%);
+}
+
+/* ── Vertical text ─────────────────────────────────────────────────────── */
+.vertical-rl {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* ── Kinetic link ──────────────────────────────────────────────────────── */
+.kinetic-link {
+  position: relative;
+}
+.kinetic-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width var(--hud-mid);
+}
+.kinetic-link:hover::after { width: 100%; }
+
+/* ── HUD panel base ────────────────────────────────────────────────────── */
+.hud-panel {
+  border: 1px solid rgba(255,0,0,0.2);
+  background: rgba(0,0,0,0.5);
+}
+
+/* ── Responsive HUD text ───────────────────────────────────────────────── */
+.hud-text-xs   { font-size: clamp(0.6rem, 1.2vw, 0.75rem); }
+.hud-text-sm   { font-size: clamp(0.7rem, 1.5vw, 0.875rem); }
+.hud-text-base { font-size: clamp(0.8rem, 1.8vw, 1rem); }
+.hud-text-lg   { font-size: clamp(0.9rem, 2vw, 1.125rem); }
+
+/* ── PERFORMANCE: Off-screen animation pause ─────────────────────────────── */
+.anim-pausable * {
+  animation-play-state: var(--play-state, running);
+}
+
+/* ── PERFORMANCE: GPU compositing hints ──────────────────────────────────── */
+.gpu-layer {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ── PERFORMANCE: Contain paint for heavy sections ───────────────────────── */
+.contain-paint {
+  contain: paint;
+  overflow: hidden;
+}
+
+/* ── Glitch text wrapper ───────────────────────────────────────────────── */
+.glitch-text {
+  position: relative;
+}
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.glitch-text::before {
+  color: #FF4444;
+  animation: glitch 4s infinite steps(1);
+  animation-delay: 0.1s;
+}
+.glitch-text::after {
+  color: #00FFFF;
+  animation: glitch2 4s infinite steps(1);
+  animation-delay: 0.2s;
+  opacity: 0.4;
+}
+
+/* ── Retro CRT scanlines overlay ───────────────────────────────────────── */
+.retro-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS — SINGLE DEFINITIONS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Glitch */
 @keyframes glitch {
   0%   { clip-path: inset(0 0 98% 0); transform: translate(-2px, 0); }
   10%  { clip-path: inset(40% 0 50% 0); transform: translate(2px, 0); }
@@ -28,12 +411,13 @@
   100% { clip-path: inset(0 0 98% 0);   transform: translate(0, 0); opacity: 0.7; }
 }
 
-/* Scanline sweep — transform instead of top (no layout thrash) */
-@keyframes scanSweep {
-  0%   { transform: translateY(-100%); opacity: 0; }
-  5%   { opacity: 1; }
-  95%  { opacity: 1; }
-  100% { transform: translateY(2000%); opacity: 0; }
+/* Glitch hard (subtle, infrequent) */
+@keyframes glitchHard {
+  0%, 90%, 100% { clip-path: none; transform: none; }
+  91% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 0); }
+  92% { clip-path: inset(60% 0 20% 0); transform: translate(3px, 0); }
+  93% { clip-path: inset(40% 0 40% 0); transform: translate(-2px, 0); }
+  94% { clip-path: none; transform: none; }
 }
 
 /* HUD flicker */
@@ -46,113 +430,166 @@
   97%       { opacity: 1; }
 }
 
-/* Pixel blink cursor */
-@keyframes pixelBlink {
+/* Gradient shift — defined once here, referenced by .text-gradient-red */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+/* Shimmer sweep — transform only, no layout thrash */
+@keyframes shimmer {
+  from { transform: translateX(-100%) skewX(-12deg); }
+  to   { transform: translateX(300%) skewX(-12deg); }
+}
+
+/* Orb float */
+@keyframes orb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 15px) scale(0.97); }
+}
+
+/* Scan beam — transform only, no layout thrash */
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(1200%); }
+}
+
+/* About section scan — smooth top-to-bottom loop */
+@keyframes aboutScan {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateY(2000%); opacity: 0; }
+}
+
+/* Blink */
+@keyframes blink {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0; }
 }
 
-/* Data stream (vertical falling chars effect) */
-@keyframes dataStream {
-  0%   { transform: translateY(-100%); opacity: 0; }
+/* Marquee */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Ripple */
+@keyframes ripple {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Beam */
+@keyframes beam {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(400%); }
+}
+
+/* Particle float */
+@keyframes particle {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
   10%  { opacity: 0.6; }
-  90%  { opacity: 0.6; }
-  100% { transform: translateY(100vh); opacity: 0; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
 }
 
-/* Boot line reveal — scaleX instead of width (no layout thrash) */
-@keyframes bootReveal {
-  from { transform: scaleX(0); opacity: 0; transform-origin: left; }
-  to   { transform: scaleX(1); opacity: 1; transform-origin: left; }
+/* Rotate slow */
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* Retro border pulse */
-@keyframes borderPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
-  50%       { box-shadow: 0 0 0 2px rgba(255,0,0,0.3), 0 0 20px rgba(255,0,0,0.1); }
+/* Float */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
 }
 
-/* Utility classes */
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Divider sweep */
+@keyframes dividerSweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Pulse red */
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,0,0,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(255,0,0,0); }
+}
+
+/* Border pulse red */
+@keyframes borderPulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); border-color: rgba(255,0,0,0.3); }
+  50%       { box-shadow: 0 0 0 3px rgba(255,0,0,0.2), 0 0 20px rgba(255,0,0,0.1); border-color: rgba(255,0,0,0.6); }
+}
+
+/* Spin */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Ambient float (AmbientLayer dots) */
+@keyframes ambientFloat {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  50%       { opacity: 0.35; transform: translateY(-20px); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ANIMATION UTILITY CLASSES
+   ══════════════════════════════════════════════════════════════════════════ */
+
 .animate-glitch        { animation: glitch 3s infinite steps(1); }
+.animate-glitch-hard   { animation: glitchHard 6s infinite; }
 .animate-hud-flicker   { animation: hudFlicker 8s infinite; }
-.animate-pixel-blink   { animation: pixelBlink 1s infinite; }
-.animate-border-pulse  { animation: borderPulse 2s ease-in-out infinite; }
-.animate-scan-sweep    { animation: scanSweep 4s linear infinite; }
+.animate-flicker       { animation: hudFlicker 8s infinite; }
+.animate-blink         { animation: blink 1s step-end infinite; }
+.animate-shimmer       { animation: shimmer 1.2s ease-in-out; }
+.animate-orb           { animation: orb 12s ease-in-out infinite; }
+.animate-scan          { animation: scan 2.5s linear infinite; }
+.animate-marquee       { animation: marquee 20s linear infinite; }
+.animate-ripple        { animation: ripple 1.5s ease-out infinite; }
 
-/* Retro CRT scanlines overlay (apply to section wrappers) */
-.retro-scanlines::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.08) 2px,
-    rgba(0,0,0,0.08) 4px
-  );
-  pointer-events: none;
-  z-index: 1;
+/* ── Smooth seamless marquee ── */
+@keyframes smoothMarquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
-
-/* Glitch text wrapper */
-.glitch-text {
-  position: relative;
-}
-.glitch-text::before,
-.glitch-text::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.glitch-text::before {
-  color: #FF4444;
-  animation: glitch 4s infinite steps(1);
-  animation-delay: 0.1s;
-}
-.glitch-text::after {
-  color: #00FFFF;
-  animation: glitch2 4s infinite steps(1);
-  animation-delay: 0.2s;
-  opacity: 0.4;
-}
-
-/* HUD panel base */
-.hud-panel {
-  border: 1px solid rgba(255,0,0,0.2);
-  background: rgba(0,0,0,0.5);
-  animation: hudFlicker 10s infinite;
-}
-
-/* Responsive font scaling for HUD text */
-.hud-text-xs  { font-size: clamp(0.6rem, 1.2vw, 0.75rem); }
-.hud-text-sm  { font-size: clamp(0.7rem, 1.5vw, 0.875rem); }
-.hud-text-base { font-size: clamp(0.8rem, 1.8vw, 1rem); }
-.hud-text-lg  { font-size: clamp(0.9rem, 2vw, 1.125rem); }
-
-/* ── PERFORMANCE: Off-screen animation pause ─────────────────────────────── */
-/* Apply .anim-pausable to any element with infinite CSS animations.
-   JS sets --play-state via IntersectionObserver to pause when off-screen. */
-.anim-pausable * {
-  animation-play-state: var(--play-state, running);
-}
-
-/* ── PERFORMANCE: GPU compositing hints ──────────────────────────────────── */
-/* Only use on elements that actually animate transform/opacity */
-.gpu-layer {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
+.animate-beam          { animation: beam 1.5s linear infinite; }
+.animate-particle      { animation: particle linear infinite; }
+.animate-rotate-slow   { animation: rotateSlow 20s linear infinite; }
+.animate-rotate-slower { animation: rotateSlow 35s linear infinite; }
+.animate-float         { animation: float 6s ease-in-out infinite; }
+.animate-fade-in       { animation: fadeIn 0.3s ease forwards; }
+.animate-divider       { animation: dividerSweep 3s ease-in-out infinite; }
+.animate-pulse-red     { animation: pulseRed 1.5s ease-in-out infinite; }
+.animate-border-pulse  { animation: borderPulseRed 2s ease-in-out infinite; }
+.animate-spin          { animation: spin 1s linear infinite; }
 
 /* ── ACCESSIBILITY: Respect prefers-reduced-motion ───────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .animate-glitch,
+  .animate-glitch-hard,
   .animate-hud-flicker,
-  .animate-pixel-blink,
+  .animate-flicker,
+  .animate-orb,
+  .animate-shimmer,
+  .animate-scan,
+  .animate-beam,
+  .animate-particle,
+  .animate-rotate-slow,
+  .animate-rotate-slower,
+  .animate-float,
+  .animate-divider,
   .animate-border-pulse,
-  .animate-scan-sweep,
   .glitch-text::before,
   .glitch-text::after {
     animation: none !important;
@@ -167,22 +604,88 @@
   }
 }
 
-/* ── PERFORMANCE: Contain paint for heavy sections ───────────────────────── */
-.contain-paint {
-  contain: paint;
-  overflow: hidden;
-}
-
-/* ── MOBILE: Disable expensive CSS effects on small screens ─────────────── */
+/* ── MOBILE: Disable expensive animations ──────────────────────────────── */
 @media (max-width: 767px) {
-  .animate-hud-flicker {
-    animation: none;
+  .animate-orb,
+  .animate-rotate-slow,
+  .animate-rotate-slower,
+  .animate-float,
+  .animate-shimmer,
+  .animate-glitch-hard,
+  .animate-hud-flicker,
+  .animate-flicker {
+    animation: none !important;
   }
-  .retro-scanlines::after {
-    display: none;
-  }
+  .retro-scanlines::after,
   .glitch-text::before,
   .glitch-text::after {
     display: none;
   }
+  .hud-orbit { display: none; }
+
+  /* Card flip on mobile: disable 3D transform, show front only */
+  .card-flip-wrapper {
+    perspective: none;
+  }
+  .card-flip-inner {
+    transform-style: flat;
+    transition: none;
+  }
+  .card-flip-wrapper:hover .card-flip-inner {
+    transform: none;
+  }
+  /* Keep both faces in normal flow; hide back */
+  .card-face {
+    position: relative;
+    inset: auto;
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+  }
+  .card-back {
+    display: none;
+  }
+}
+
+/* ── iOS Safari: fix preserve-3d inside scroll containers ──────────────── */
+/* iOS Safari has a known bug where preserve-3d breaks inside overflow:auto/scroll.
+   Force flat rendering on iOS to prevent blank/invisible cards. */
+@supports (-webkit-touch-callout: none) {
+  .card-flip-wrapper {
+    perspective: none;
+  }
+  .card-flip-inner {
+    transform-style: flat;
+    transition: none;
+  }
+  .card-flip-wrapper:hover .card-flip-inner {
+    transform: none;
+  }
+  .card-face {
+    position: relative;
+    inset: auto;
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+  }
+  .card-back {
+    display: none;
+  }
+  /* Disable filter:blur — causes GPU layer explosion on iOS */
+  .animate-orb {
+    animation: none !important;
+  }
+  /* Disable tilt-3d on iOS — preserve-3d is unreliable */
+  .tilt-3d {
+    transform-style: flat !important;
+  }
+  .tilt-layer {
+    transform: none !important;
+  }
+}
+
+/* ── Android tablet (768px–1023px): reduce heavy effects ──────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Disable orbit rings on tablets — they cause repaints during scroll */
+  .hud-orbit { display: none; }
+  /* Reduce shimmer frequency */
+  .animate-shimmer { animation-duration: 2s; }
 }

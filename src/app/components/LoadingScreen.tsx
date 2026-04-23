@@ -1,230 +1,146 @@
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "motion/react";
-import { useEffect, useState } from "react";
-import { useAnimationConfig } from "../context/AnimationContext";
+import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
-function Counter({ value }: { value: number }) {
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (v) => Math.round(v));
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    const controls = animate(count, value, { duration: 0.3 });
-    const unsub = rounded.on("change", setDisplay);
-    return () => { controls.stop(); unsub(); };
-  }, [value]);
-  return <span>{display}</span>;
-}
-
-const BOOT_LINES = [
-  { text: "INITIALIZING PORTFOLIO_OS v2.0...", delay: 0.1 },
-  { text: "LOADING DESIGN_MODULES...", delay: 0.4 },
-  { text: "MOUNTING UX_RESEARCH_ENGINE...", delay: 0.7 },
-  { text: "MOUNTING UI_COMPONENTS...", delay: 1.0 },
-  { text: "CONNECTING RHENMART_DELACRUZ.exe...", delay: 1.3 },
-  { text: "PORTFOLIO READY.", delay: 1.6, highlight: true },
+const LINES = [
+  "> Initializing design system...",
+  "> Loading portfolio assets...",
+  "> Establishing connection...",
+  "> Rendering components...",
+  "> Designer is ready",
 ];
 
 export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
-  const { isMobile, isSafari, enable3DTilt } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
+  const [shown, setShown] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [hide, setHide] = useState(false);
   const [done, setDone] = useState(false);
-  const [visibleLines, setVisibleLines] = useState(0);
+  const initialized = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setTimeout(() => { setDone(true); setTimeout(onComplete, 600); }, 400);
-          return 100;
-        }
-        const inc = p < 50 ? 1.2 : p < 80 ? 0.6 : p < 95 ? 0.25 : 0.12;
-        return Math.min(p + inc, 100);
-      });
-    }, 30);
-    return () => clearInterval(interval);
+  const finish = useCallback(() => {
+    // Clear any pending timers
+    timers.current.forEach(clearTimeout);
+    setHide(true);
+    setTimeout(() => {
+      setDone(true);
+      onComplete();
+    }, 400);
   }, [onComplete]);
 
   useEffect(() => {
-    BOOT_LINES.forEach((_, i) => {
-      setTimeout(() => setVisibleLines(i + 1), (BOOT_LINES[i].delay * 1000));
-    });
-  }, []);
+    if (initialized.current) return;
+    initialized.current = true;
+
+    const lineTimer = setInterval(() => setShown((s) => Math.min(s + 1, LINES.length)), 200);
+    const progTimer = setInterval(() => setProgress((p) => Math.min(p + 10, 100)), 60);
+
+    // Max wait: 1s hide + 400ms fade = 1.4s total (down from 1.9s)
+    const hideTimer = setTimeout(() => setHide(true), 1000);
+    const finishTimer = setTimeout(() => {
+      setDone(true);
+      onComplete();
+    }, 1400);
+
+    timers.current = [hideTimer, finishTimer];
+
+    return () => {
+      clearInterval(lineTimer);
+      clearInterval(progTimer);
+      timers.current.forEach(clearTimeout);
+    };
+  }, [onComplete]);
 
   return (
     <AnimatePresence>
       {!done && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[9999] bg-[#030303] flex flex-col items-center justify-center overflow-hidden font-mono"
+          animate={{ opacity: hide ? 0 : 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          onClick={finish}
+          className="fixed inset-0 z-[9999] bg-[#030303] flex items-center justify-center"
+          style={{ pointerEvents: hide ? "none" : "all", cursor: "pointer" }}
+          title="Click to skip"
         >
+          {/* Grid bg */}
+          <div className="absolute inset-0 bg-grid opacity-30" />
           {/* Scanlines */}
-          {!reduceEffects && (
-            <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
-              style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.5) 2px, rgba(255,255,255,0.5) 3px)", backgroundSize: "100% 3px" }} />
-          )}
+          <div className="absolute inset-0 scanlines opacity-40" />
 
-          {/* Ambient glow */}
-          {!reduceEffects && (
-            <motion.div animate={{ opacity: [0.06, 0.14, 0.06] }} transition={{ duration: 4, repeat: Infinity }}
-              className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
-              style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.1)", background: "transparent" }} />
-          )}
+          {/* HUD Panel */}
+          <div className="relative w-full max-w-xl mx-6 p-8 border border-[rgba(255,0,0,0.20)] bg-[#050505]">
+            {/* Corner brackets */}
+            <span className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FF0000]" />
+            <span className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FF0000]" />
+            <span className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#FF0000]" />
+            <span className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FF0000]" />
 
-          {/* Floating particles */}
-          {!isMobile && !isSafari && Array.from({ length: 6 }, (_, i) => (
-            <motion.div key={i}
-              animate={{ y: [0, -20, 0], opacity: [0, 0.3, 0] }}
-              transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: i * 0.4 }}
-              className="absolute w-px h-px bg-[#FF0000] rounded-full pointer-events-none"
-              style={{ left: `${15 + i * 14}%`, top: `${30 + (i % 3) * 20}%` }}
-            />
-          ))}
+            {/* Top bar */}
+            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest mb-6">
+              <span className="text-[#FF0000]">PORTFOLIO_OS v2.0</span>
+              <span className="text-[rgba(255,255,255,0.55)] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF0000] animate-pulse-red" />
+                BOOTING
+              </span>
+            </div>
 
-          {/* Main HUD panel */}
-          <div className="relative w-[300px] sm:w-[420px] mx-4">
-            {/* Outer frame */}
-            <div className="border border-[#FF0000]/20 rounded bg-black/60 p-6 relative overflow-hidden">
-              {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-[#FF0000]/60" />
-              <div className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-[#FF0000]/60" />
-              <div className="absolute bottom-0 left-0 w-5 h-5 border-b-2 border-l-2 border-[#FF0000]/60" />
-              <div className="absolute bottom-0 right-0 w-5 h-5 border-b-2 border-r-2 border-[#FF0000]/60" />
-
-              {/* Top bar */}
-              <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#FF0000]/10">
-                <div className="flex items-center gap-2">
-                  <motion.div animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
-                    className="w-2 h-2 rounded-full bg-[#FF0000]" />
-                  <span className="text-[#FF0000] text-[9px] font-bold uppercase tracking-[0.2em]">PORTFOLIO_OS</span>
-                </div>
-                <span className="text-white/20 text-[9px] uppercase tracking-widest">v2.0</span>
-              </div>
-
-              {/* Logo / identity */}
-              <div className="flex flex-col items-center gap-3 mb-6">
-                {/* Rotating ring */}
-                <div className="relative w-20 h-20 flex items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full pointer-events-none"
-                    style={{
-                      background: "conic-gradient(from 0deg, #FF0000 0%, transparent 40%, #FF0000 70%, transparent 100%)",
-                      WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 2px), white calc(100% - 2px))",
-                      mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), white calc(100% - 2px))",
-                      opacity: 0.7,
-                    }}
-                  />
-                  {!reduceEffects && (
-                    <motion.div
-                      animate={{ rotate: -360 }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                      className="absolute w-12 h-12 rounded-full pointer-events-none"
-                      style={{
-                        background: "conic-gradient(from 0deg, #FF4444, transparent 50%)",
-                        WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 1.5px), white calc(100% - 1.5px))",
-                        mask: "radial-gradient(farthest-side, transparent calc(100% - 1.5px), white calc(100% - 1.5px))",
-                        opacity: 0.4,
-                      }}
-                    />
-                  )}
-                  <div className="relative z-10 text-center">
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0.4, 1, 0.4] }}
-                      transition={{ delay: 0.5, duration: 1.5, repeat: Infinity }}
-                      className="text-[#FF0000] text-[9px] uppercase tracking-widest block"
-                    >
-                      LOADING
-                    </motion.span>
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-white text-xs font-bold uppercase tracking-[0.25em]"
-                  >
-                    RHENMART DELA CRUZ
-                  </motion.p>
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="text-white/25 text-[9px] uppercase tracking-widest mt-0.5"
-                  >
-                    UX/UI_DESIGNER // PRODUCT_DESIGNER
-                  </motion.p>
+            {/* Identity row */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative w-16 h-16 flex-shrink-0">
+                <div className="absolute inset-0 border-2 border-[rgba(255,0,0,0.20)] rounded-full" />
+                <div className="absolute inset-0 border-2 border-transparent border-t-[#FF0000] rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center font-mono text-[8px] text-[#FF0000]">
+                  LOAD
                 </div>
               </div>
-
-              {/* Boot log */}
-              <div className="bg-black/40 border border-white/[0.05] rounded p-3 mb-4 min-h-[80px]">
-                <div className="text-[#FF0000]/30 text-[8px] uppercase tracking-widest mb-2">// BOOT_LOG</div>
-                {BOOT_LINES.slice(0, visibleLines).map((line, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className={`flex items-center gap-2 text-[9px] leading-relaxed ${line.highlight ? "text-green-400" : "text-white/35"}`}
-                  >
-                    <span className={line.highlight ? "text-green-400" : "text-[#FF0000]/40"}>▸</span>
-                    {line.text}
-                    {i === visibleLines - 1 && !line.highlight && (
-                      <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.6, repeat: Infinity }}
-                        className="text-[#FF0000] text-[10px]">█</motion.span>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Progress bar */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/20 text-[8px] uppercase tracking-widest">LOADING_ASSETS</span>
-                  <span className="text-[#FF0000] text-[9px] font-bold">
-                    <Counter value={Math.round(progress)} />%
-                  </span>
-                </div>
-                <div className="w-full h-[3px] bg-white/5 rounded-full overflow-hidden relative">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ width: `${progress}%`, background: "linear-gradient(90deg, #FF0000, #FF4444)" }}
-                  />
-                  {/* Shimmer on bar */}
-                  {!reduceEffects && (
-                    <motion.div
-                      animate={{ x: ["-100%", "400%"] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                      className="absolute top-0 left-0 w-1/4 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                    />
-                  )}
-                </div>
-                {/* Segment ticks */}
-                <div className="flex justify-between">
-                  {[0, 25, 50, 75, 100].map((tick) => (
-                    <span key={tick} className={`text-[7px] font-mono ${progress >= tick ? "text-[#FF0000]/50" : "text-white/10"}`}>{tick}</span>
-                  ))}
+              <div>
+                <div className="font-black text-lg tracking-tight text-white">RHENMART DELA CRUZ</div>
+                <div className="font-mono text-[10px] text-[rgba(255,255,255,0.55)] tracking-widest">
+                  UX/UI_DESIGNER // PRODUCT_DESIGNER
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Bottom tagline */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4 }}
-            className="absolute bottom-6 text-white/10 text-[8px] tracking-[0.4em] uppercase font-mono"
-          >
-            CRAFTING_DIGITAL_EXPERIENCES
-          </motion.p>
+            {/* Boot log */}
+            <div className="space-y-1 font-mono text-xs mb-6 min-h-[110px]">
+              {LINES.slice(0, shown).map((l, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={i === LINES.length - 1 ? "text-green-400" : "text-[rgba(255,255,255,0.55)]"}
+                >
+                  <span className={i === LINES.length - 1 ? "text-green-400" : "text-[#FF0000]"}>{l.slice(0, 1)}</span>
+                  {l.slice(1)}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Progress bar */}
+            <div className="relative h-2 bg-[#080808] border border-[rgba(255,255,255,0.08)] mb-2">
+              <div
+                className="h-full bg-gradient-to-r from-[#CC0000] via-[#FF0000] to-[#FF4444] transition-all duration-100"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="flex justify-between font-mono text-[9px] text-[rgba(255,255,255,0.30)] mb-4">
+              {[0, 25, 50, 75, 100].map((t) => (
+                <span key={t}>{t}%</span>
+              ))}
+            </div>
+
+            {/* Bottom row */}
+            <div className="flex items-center justify-between">
+              <div className="text-center font-mono text-[10px] text-[#FF0000] tracking-[0.3em] uppercase">
+                CRAFTING_DIGITAL_EXPERIENCES
+              </div>
+              <span className="font-mono text-[9px] text-[rgba(255,255,255,0.25)] tracking-widest animate-blink">
+                [ CLICK TO SKIP ]
+              </span>
+            </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

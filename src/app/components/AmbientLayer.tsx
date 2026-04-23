@@ -12,10 +12,11 @@ const DOT_CONFIGS = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export function AmbientLayer({ className }: { className?: string }) {
-  const { tier, isSafari, isMobile } = useAnimationConfig();
+  // Use context values — single source of truth for all platform decisions
+  const { enableAmbientLayer, ambientDotCount } = useAnimationConfig();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pause dots when off-screen
+  // Pause dots when off-screen to save GPU cycles
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -29,41 +30,33 @@ export function AmbientLayer({ className }: { className?: string }) {
     return () => obs.disconnect();
   }, []);
 
-  if (tier === 'low' || isSafari) return null;
+  // enableAmbientLayer already accounts for: tier, isSafari, isIOS, isMobile
+  if (!enableAmbientLayer || ambientDotCount === 0) return null;
 
-  const dotCount = isMobile ? 6 : 12;
-  const dots = DOT_CONFIGS.slice(0, dotCount);
+  const dots = DOT_CONFIGS.slice(0, ambientDotCount);
 
   return (
-    <>
-      <style>{`
-        @keyframes ambientFloat {
-          0%, 100% { opacity: 0; transform: translateY(0); }
-          50% { opacity: 0.35; transform: translateY(-20px); }
-        }
-      `}</style>
-      <div
-        ref={containerRef}
-        className={className}
-        aria-hidden="true"
-        style={{ '--play-state': 'running' } as React.CSSProperties}
-      >
-        {dots.map((dot, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full pointer-events-none"
-            style={{
-              left: dot.left,
-              top: dot.top,
-              width: dot.size,
-              height: dot.size,
-              backgroundColor: dot.color,
-              animation: `ambientFloat ${dot.duration} ease-in-out ${dot.delay} infinite`,
-              animationPlayState: 'var(--play-state)',
-            }}
-          />
-        ))}
-      </div>
-    </>
+    <div
+      ref={containerRef}
+      className={className}
+      aria-hidden="true"
+      style={{ '--play-state': 'running' } as React.CSSProperties}
+    >
+      {dots.map((dot, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            left: dot.left,
+            top: dot.top,
+            width: dot.size,
+            height: dot.size,
+            backgroundColor: dot.color,
+            animation: `ambientFloat ${dot.duration} ease-in-out ${dot.delay} infinite`,
+            animationPlayState: 'var(--play-state)',
+          }}
+        />
+      ))}
+    </div>
   );
 }

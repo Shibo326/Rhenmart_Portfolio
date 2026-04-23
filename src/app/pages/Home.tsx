@@ -25,6 +25,8 @@ const ScrollProgressBar = memo(function ScrollProgressBar() {
 });
 
 // ── Section reveal — personality per section ───────────────────────────────
+type SectionKey = "services" | "about" | "skills" | "portfolio" | "contact";
+
 function makeSectionVariants(reduce: boolean) {
   return {
     services: {
@@ -50,9 +52,9 @@ function makeSectionVariants(reduce: boolean) {
   };
 }
 
-const RevealSection = memo(function RevealSection({ children, section }: { children: React.ReactNode; section?: string }) {
-  const { isMobile, isSafari } = useAnimationConfig();
-  const sectionVariants = makeSectionVariants(isMobile || isSafari);
+const RevealSection = memo(function RevealSection({ children, section }: { children: React.ReactNode; section?: SectionKey }) {
+  const { isMobile, isSafari, isIOS } = useAnimationConfig();
+  const sectionVariants = makeSectionVariants(isMobile || isSafari || isIOS);
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const variant = section ? sectionVariants[section] : sectionVariants.services;
@@ -80,17 +82,17 @@ const RevealSection = memo(function RevealSection({ children, section }: { child
   );
 });
 
-// ── Scroll orbs — desktop non-Safari only ──────────────────────────────────
+// ── Scroll orbs — desktop non-Safari, non-iOS only ────────────────────────
 const ScrollOrbs = memo(function ScrollOrbs() {
-  const { isMobile, isSafari } = useAnimationConfig();
-  const reduceEffects = isMobile || isSafari;
+  const { isMobile, isSafari, isIOS } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari || isIOS;
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 4000], [0, -300]);
   const y2 = useTransform(scrollY, [0, 4000], [0, -150]);
 
   if (reduceEffects) return null;
 
-  // box-shadow replaces filter:blur — much cheaper on Safari/macOS
+  // box-shadow replaces filter:blur — much cheaper on all platforms
   return (
     <div className="fixed inset-0 z-[-2] pointer-events-none overflow-hidden">
       <motion.div
@@ -161,11 +163,11 @@ const CursorGlow = memo(function CursorGlow() {
 
 // ── Animated section divider ───────────────────────────────────────────────
 function Divider() {
-  const { isMobile } = useAnimationConfig();
+  const { isMobile, isIOS } = useAnimationConfig();
   return (
     <div className="h-px relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FF0000]/25 to-transparent" />
-      {!isMobile && (
+      {!isMobile && !isIOS && (
         <motion.div
           animate={{ x: ["-100%", "200%"] }}
           transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
@@ -178,8 +180,8 @@ function Divider() {
 
 // ── Home ────────────────────────────────────────────────────────────────────
 export function Home() {
-  const { isMobile, isSafari } = useAnimationConfig();
-  const reduceEffects = isMobile || isSafari;
+  const { isMobile, isSafari, isIOS } = useAnimationConfig();
+  const reduceEffects = isMobile || isSafari || isIOS;
   const [showTopBtn, setShowTopBtn] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 

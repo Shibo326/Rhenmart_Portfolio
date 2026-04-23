@@ -1,181 +1,104 @@
-import { motion, useInView } from "motion/react";
-import { Mail, Phone, Heart } from "lucide-react";
-import { Linkedin, Github, Instagram, Facebook } from "lucide-react";
-import { useRef } from "react";
-import { useAnimationConfig } from "../context/AnimationContext";
+import { GithubIcon, LinkedinIcon, InstagramIcon, FacebookIcon } from "lucide-react";
 
-const navLinks = ["Home", "Services", "About", "Portfolio", "Contact"];
+const links = ["HOME", "SERVICES", "ABOUT", "SKILLS", "PORTFOLIO", "CONTACT"];
 const socials = [
-  { href: "https://github.com/Shibo326", icon: Github, color: "#6e40c9", shadow: "rgba(110,64,201,0.5)" },
-  { href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", icon: Linkedin, color: "#0077B5", shadow: "rgba(0,119,181,0.5)" },
-  { href: "https://www.instagram.com/_rhenmart_/", icon: Instagram, color: "#E1306C", shadow: "rgba(225,48,108,0.5)" },
-  { href: "https://www.facebook.com/rhenmart1234", icon: Facebook, color: "#1877F2", shadow: "rgba(24,119,242,0.5)" },
+  { Icon: GithubIcon,    href: "https://github.com/Shibo326",                              label: "GitHub" },
+  { Icon: LinkedinIcon,  href: "https://www.linkedin.com/in/rhenmart-delacruz-117858312/", label: "LinkedIn" },
+  { Icon: InstagramIcon, href: "https://www.instagram.com/_rhenmart_/",                    label: "Instagram" },
+  { Icon: FacebookIcon,  href: "https://www.facebook.com/rhenmart1234",                    label: "Facebook" },
+];
+
+const TICKER = [
+  "PRODUCT_DESIGNER", "UI/UX_DESIGNER", "AI_ASSISTED", "RESEARCH_FIRST",
+  "DEV_READY", "FIGMA_NATIVE", "HUMAN_CENTERED", "PHILIPPINES_BASED",
 ];
 
 export function Footer() {
-  const { enable3DTilt } = useAnimationConfig();
-  const reduceEffects = !enable3DTilt;
-  const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-40px" });
-  const year = new Date().getFullYear();
+  const go = (id: string) => {
+    const lower = id.toLowerCase();
+    if (lower === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    document.getElementById(lower)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
-    <footer ref={ref} className="py-12 bg-[#030303] border-t border-white/5 relative overflow-hidden">
-      {/* HUD flicker — background only, not content */}
-      {!reduceEffects && (
-        <div className="absolute inset-0 pointer-events-none animate-hud-flicker opacity-30" />
-      )}
-      {/* Top line */}
-      <motion.div
-        initial={{ scaleX: 0 }}
-        animate={isInView ? { scaleX: 1 } : {}}
-        transition={{ duration: 0.8 }}
-        style={{ originX: 0.5 }}
-        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF0000]/40 to-transparent"
-      />
+    <footer className="relative bg-[#030303] border-t border-[rgba(255,0,0,0.20)] animate-flicker overflow-hidden">
+      <div className="absolute inset-0 scanlines opacity-30 pointer-events-none" />
 
-      {/* Ambient glow — desktop non-Safari only, box-shadow */}
-      {!reduceEffects && (
-        <motion.div
-          animate={{ opacity: [0.4, 0.8, 0.4] }}
-          transition={{ duration: 6, repeat: Infinity }}
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[120px] rounded-full pointer-events-none"
-          style={{ boxShadow: "0 0 120px 60px rgba(255,0,0,0.04)", background: "transparent" }}
-        />
-      )}
+      {/* Marquee ticker */}
+      <div className="border-b border-[rgba(255,255,255,0.08)] overflow-hidden py-2 relative bg-[#050505]">
+        {/* Fade edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+          style={{ background: "linear-gradient(to right, #050505, transparent)" }} />
+        <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+          style={{ background: "linear-gradient(to left, #050505, transparent)" }} />
 
-      {/* Floating particles — desktop non-Safari only */}
-      {!reduceEffects && [0, 1, 2, 3, 4].map((i) => (
-        <motion.div key={i}
-          animate={{ y: [0, -14, 0], opacity: [0, 0.2, 0] }}
-          transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.7 }}
-          className="absolute w-1 h-1 bg-[#FF0000] rounded-full pointer-events-none"
-          style={{ left: `${15 + i * 18}%`, bottom: `${20 + (i % 3) * 20}%` }}
-        />
-      ))}
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center gap-6">
-
-        {/* Brand */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-2"
-        >
-          <motion.div animate={{ opacity:[1,0.3,1] }} transition={{ duration:1.5, repeat:Infinity }}
-            className="w-1.5 h-1.5 rounded-full bg-[#FF0000]" />
-          <motion.span
-            animate={reduceEffects ? {} : { textShadow: ["0 0 0px #FF0000", "0 0 18px #FF0000", "0 0 0px #FF0000"] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="text-2xl font-black tracking-tighter text-[#FF0000] font-mono"
-          >
-            RHEN<span className="text-white/30">_</span>
-          </motion.span>
-          <span className="text-[9px] font-mono text-white/15 border border-white/10 px-1.5 py-0.5 rounded animate-border-pulse">DESIGNER_READY</span>
-        </motion.div>
-
-        {/* Nav links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8">
-          {navLinks.map((name, i) => (
-            <motion.a
-              key={name}
-              href={`#${name.toLowerCase()}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.04, duration: 0.4 }}
-              onClick={(e) => {
-                e.preventDefault();
-                const id = name.toLowerCase();
-                if (id === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
-                const target = document.querySelector(`#${id}`);
-                if (target) {
-                  const top = target.getBoundingClientRect().top + window.scrollY - 80;
-                  window.scrollTo({ top, behavior: "smooth" });
-                }
-              }}
-              className="text-white/40 text-xs font-semibold uppercase tracking-widest hover:text-[#FF0000] transition-colors duration-200"
-            >
-              {name}
-            </motion.a>
+        <div className="flex w-max" style={{ animation: "smoothMarquee 25s linear infinite" }}>
+          {[0, 1, 2, 3].map((_, i) => (
+            <span key={i} className="flex items-center font-mono text-[10px] tracking-widest text-[rgba(255,255,255,0.55)]">
+              {TICKER.map((t) => (
+                <span key={t} className="mx-8 flex items-center gap-2 whitespace-nowrap">
+                  <span className="text-[#FF0000] text-[8px]">◆</span>
+                  {t}
+                </span>
+              ))}
+            </span>
           ))}
         </div>
+      </div>
 
-        {/* Social icons */}
-        <div className="flex gap-3">
-          {socials.map(({ href, icon: Icon, color, shadow }, i) => (
-            <motion.a
-              key={i}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-              whileHover={reduceEffects ? {} : { scale: 1.15, rotate: 6 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-3 bg-white/5 border border-white/10 rounded-full text-white/60 hover:text-white transition-colors duration-200"
-              onMouseEnter={e => {
-                if (reduceEffects) return;
-                const el = e.currentTarget as HTMLElement;
-                el.style.backgroundColor = color;
-                el.style.boxShadow = `0 0 16px ${shadow}`;
-                el.style.borderColor = color;
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.backgroundColor = "";
-                el.style.boxShadow = "";
-                el.style.borderColor = "";
-              }}
-            >
-              <Icon size={17} />
-            </motion.a>
-          ))}
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 relative">
+        <div className="grid md:grid-cols-3 gap-8 items-start">
 
-        {/* Divider */}
-        <div className="w-full max-w-xs h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+          {/* Brand */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 font-mono font-bold text-2xl">
+              <span className="text-white">RHEN_</span>
+              <span className="w-2.5 h-2.5 bg-[#FF0000] rounded-full animate-pulse-red" />
+            </div>
+            <span className="inline-block border-2 border-[rgba(255,0,0,0.30)] text-white font-mono text-[10px] tracking-widest px-3 py-1.5 animate-border-pulse">
+              DESIGNER_READY
+            </span>
+            <p className="text-sm text-[rgba(255,255,255,0.55)] max-w-xs">
+              Crafting digital experiences with research, design, and intention.
+            </p>
+          </div>
 
-        {/* Contact info */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-          {[
-            { href: "mailto:Rhenmart978@gmail.com", icon: Mail, label: "Rhenmart978@gmail.com" },
-            { href: "tel:+639672212791", icon: Phone, label: "0967 221 2791" },
-          ].map(({ href, icon: Icon, label }, i) => (
-            <motion.a
-              key={i}
-              href={href}
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ delay: 0.1 + i * 0.06 }}
-              className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm"
-            >
-              <span className="p-1.5 bg-white/5 rounded-full">
-                <Icon size={13} className="text-[#FF0000]" />
-              </span>
-              {label}
-            </motion.a>
-          ))}
+          {/* Nav links */}
+          <div className="flex flex-wrap gap-x-5 gap-y-2 md:justify-center">
+            {links.map((l) => (
+              <button
+                key={l}
+                onClick={() => go(l)}
+                className="kinetic-link font-mono text-[11px] tracking-widest text-[rgba(255,255,255,0.55)] hover:text-[#FF0000] transition-colors"
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Socials */}
+          <div className="flex md:justify-end gap-2">
+            {socials.map(({ Icon, href, label }, i) => (
+              <a
+                key={i}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="group relative w-10 h-10 flex items-center justify-center bg-[#080808] border border-[rgba(255,255,255,0.08)] hover:border-[#FF0000] hover:text-[#FF0000] text-[rgba(255,255,255,0.55)] transition-all hover:-translate-y-1 hover:red-glow overflow-hidden"
+              >
+                <Icon size={16} className="relative z-10" />
+                <span className="absolute inset-0 bg-[rgba(255,0,0,0.10)] scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full" />
+              </a>
+            ))}
+          </div>
         </div>
 
         {/* Copyright */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.6 }}
-          className="flex items-center gap-1.5 text-white/15 text-[10px] font-mono"
-        >
-          <span className="text-[#FF0000]/30">//</span>
-          <span>&copy; {year} RHENMART_DELACRUZ</span>
-          <span className="text-white/10">|</span>
-          <span>UX/UI_DESIGNER | PRODUCT_DESIGNER</span>
-          <span className="text-white/10">|</span>
-          <Heart size={9} className="text-[#FF0000]/60 fill-[#FF0000]/60" />
-          <span>ALL_RIGHTS_RESERVED</span>
-        </motion.div>
+        <div className="mt-10 pt-6 border-t border-[rgba(255,255,255,0.08)] text-center font-mono text-[10px] text-[rgba(255,255,255,0.30)] tracking-widest break-all">
+          // © 2025 RHENMART_DELACRUZ | UX/UI_DESIGNER | PRODUCT_DESIGNER | ALL_RIGHTS_RESERVED
+        </div>
       </div>
     </footer>
   );
 }
-

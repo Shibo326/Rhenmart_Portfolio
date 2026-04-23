@@ -1,4 +1,4 @@
-import { useRef, useEffect, type ReactNode } from 'react';
+ import { useRef, useEffect, type ReactNode } from 'react';
 import { motion, useMotionValue, useSpring } from 'motion/react';
 import { useAnimationConfig } from '../context/AnimationContext';
 

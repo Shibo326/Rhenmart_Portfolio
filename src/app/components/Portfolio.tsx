@@ -1,548 +1,446 @@
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, type Variants } from "motion/react";
-import { useState, useRef, useCallback, memo, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { X } from "lucide-react";
 import { createPortal } from "react-dom";
-import { X, ExternalLink, Code, Trophy, Layers, Filter } from "lucide-react";
-import champImg from "../../Image/umak champ.jpg";
-import ndcImg from "../../Image/ndc_startup.jpeg";
-import tagisan1 from "../../Image/Tagisan ng talino first Placer.jpg";
-import tagisan2 from "../../Image/Tagisan ng talino second placer.jpg";
-import uxphImg from "../../Image/UXPH SEMINAR.jpeg";
-import beyondUiImg from "../../Image/Beyond ui.jpg";
+import { SectionBadge, RedDivider, HudCorners } from "./Hud";
+import { useCountUp, useSectionGlow } from "../hooks/useDeviceAnimations";
+
+// Images
+import champImg       from "../../Image/umak champ.jpg";
+import ndcImg         from "../../Image/ndc_startup.jpeg";
+import tagisan1       from "../../Image/Tagisan ng talino first Placer.jpg";
+import tagisan2       from "../../Image/Tagisan ng talino second placer.jpg";
+import uxphImg        from "../../Image/UXPH SEMINAR.jpeg";
+import beyondUiImg    from "../../Image/Beyond ui.jpg";
 import exploringFigmaImg from "../../Image/Exploring The basics of figma.jpg";
-import collaboratechImg from "../../Image/Collaboratech2026AndroidhACK.jpg";
-import { useAnimationConfig } from "../context/AnimationContext";
+import collaboratechImg  from "../../Image/Collaboratech2026AndroidhACK.jpg";
 
-type Category = "All" | "Competition" | "Workshop" | "Seminar" | "Case Studies";
+type Category = "COMPETITION" | "WORKSHOP" | "SEMINAR";
 
-const portfolioItems = [
-  { id: 1, title: "Web Design Champion", role: "Design Strategies / UI/UX", category: "Competition" as Category, image: champImg, challenge: "Build a one-page website in 2 hours.\nFast decisions. Strong UX. Tight deadline.", solution: "Created a clear design plan using available components.\nAligned closely with dev to reduce pressure.\nDelivered a structured, efficient layout on time.", impact: "1st Place — UMAK IT Skills Olympics.\nCommended for intuitive flow and clean execution.\nProved speed and quality can coexist." },
-  { id: 2, title: "NDC's Breaking Enigma 2025", role: "Product Designer", category: "Competition" as Category, image: ndcImg, challenge: "Build a concept-to-prototype in 4 days.\nAddress a real community problem.\nWork under Technology Track pressure.", solution: "Conceptualized SafePath — an offline GPS SOS app.\nUsers ping location to authorities without internet.\nDivided tasks strategically for rapid delivery.", impact: "Gained invaluable experience and industry connections.\nReceived guidance from professionals throughout.\nStrengthened teamwork, skills, and design thinking." },
-  { id: 3, title: "Tagisan ng Talino — 1st Place", role: "UI/UX Designer", category: "Competition" as Category, image: tagisan1, challenge: "Compete in a fast-paced academic design challenge.\nTest UX knowledge under time pressure.\nOutperform peers with accuracy and speed.", solution: "Applied strong UX principles and design theory.\nLeveraged prior competition experience to stay focused.\nAnswered challenges efficiently and confidently.", impact: "Achieved 1st Place in the competition.\nDemonstrated mastery of UI/UX best practices.\nBuilt a strong competitive track record." },
-  { id: 4, title: "Tagisan ng Talino — 2nd Place", role: "UI/UX Designer", category: "Competition" as Category, image: tagisan2, challenge: "Multi-round design competition with high stakes.\nRequires both theory and practical UX application.\nCollaborate and perform under pressure.", solution: "Prioritized accuracy and speed each round.\nCollaborated with teammates to cover all areas.\nMaintained consistency across every challenge.", impact: "Secured 2nd Place overall.\nReinforced consistent performance across competitions.\nProven ability to compete at an academic level." },
-  { id: 8, title: "Collaboratech 2026 — Android Hackathon", role: "Product Designer & UI Strategist", category: "Competition" as Category, image: collaboratechImg, challenge: "Build a fully working Android application in just 6 hours.\nSolve a real-world problem based on a given niche.\nDeliver a complete, functional product under extreme time pressure.", solution: "Used pen-and-paper rapid prototyping to map user flows and system structure — eliminating design bottlenecks before touching any tool.\nAligned every design decision to the team's technical skill set, reducing back-end complexity and accelerating development.\nActed as the bridge between design intent and engineering execution, ensuring zero miscommunication during the sprint.", impact: "2nd Place — Collaboratech 2026 Android Hackathon.\nBuilt and shipped 'ShopLift' — an online high-discount store app — within the 6-hour window.\nDemonstrated that strategic design thinking and team alignment can outperform raw technical speed." },
-  { id: 5, title: "UXPH Community Seminar", role: "Attendee / UX Learner", category: "Seminar" as Category, image: uxphImg, challenge: "Stay current with the evolving PH UX landscape.\nConnect with industry professionals and designers.\nAbsorb real-world insights beyond the classroom.", solution: "Attended talks, workshops, and networking sessions.\nGained insights on design systems and research methods.\nEngaged with UXPH — a leading PH design community.", impact: "Expanded professional network significantly.\nDeepened understanding of human-centered design.\nGained real-world industry knowledge and perspective." },
-  { id: 6, title: "Exploring The Basics of Figma", role: "Workshop Teacher / UI/UX Facilitator", category: "Workshop" as Category, image: exploringFigmaImg, challenge: "Teach Figma to complete beginners from scratch.\nCover components, frames, and basic prototyping.\nKeep the session engaging and hands-on.", solution: "Led a live demo of Figma's core tools step-by-step.\nWalked students through building a real UI screen.\nFacilitated a group activity to apply the learning.", impact: "Students built their first Figma prototype.\nConfidence and interest in UI/UX visibly increased.\nSparked career curiosity in design among participants." },
-  { id: 7, title: "Beyond UI: Designing User Experiences", role: "Workshop Teacher / UI/UX Facilitator", category: "Workshop" as Category, image: beyondUiImg, challenge: "Shift students' mindset beyond visual design.\nTeach UX thinking, flows, and interaction design.\nMake abstract concepts tangible and applicable.", solution: "Covered user research, wireframing, and prototyping.\nUsed live Figma demos and guided exercises.\nStructured content around real-world UX principles.", impact: "Students gained a solid UX foundation.\nSeveral expressed interest in pursuing design careers.\nInspired a new generation of user-centered thinkers." },
+type Project = {
+  title: string;
+  category: Category;
+  role: string;
+  image: string;
+  challenge: string;
+  solution: string;
+  impact: string;
+};
+
+const PROJECTS: Project[] = [
+  {
+    title: "Web Design Champion", category: "COMPETITION", role: "Design Strategies / UI/UX", image: champImg,
+    challenge: "Build a one-page website in 2 hours. Fast decisions. Strong UX. Tight deadline.",
+    solution: "Created a clear design plan using available components. Aligned closely with dev to reduce pressure. Delivered a structured, efficient layout on time.",
+    impact: "1st Place — UMAK IT Skills Olympics. Commended for intuitive flow and clean execution. Proved speed and quality can coexist.",
+  },
+  {
+    title: "NDC's Breaking Enigma 2025", category: "COMPETITION", role: "Product Designer", image: ndcImg,
+    challenge: "Build a concept-to-prototype in 4 days. Address a real community problem. Work under Technology Track pressure.",
+    solution: "Conceptualized SafePath — an offline GPS SOS app. Users ping location to authorities without internet. Divided tasks strategically for rapid delivery.",
+    impact: "Gained invaluable experience and industry connections. Received guidance from professionals throughout. Strengthened teamwork, skills, and design thinking.",
+  },
+  {
+    title: "Tagisan ng Talino — 1st Place", category: "COMPETITION", role: "UI/UX Designer", image: tagisan1,
+    challenge: "Compete in a fast-paced academic design challenge. Test UX knowledge under time pressure. Outperform peers with accuracy and speed.",
+    solution: "Applied strong UX principles and design theory. Leveraged prior competition experience to stay focused. Answered challenges efficiently and confidently.",
+    impact: "Achieved 1st Place in the competition. Demonstrated mastery of UI/UX best practices. Built a strong competitive track record.",
+  },
+  {
+    title: "Tagisan ng Talino — 2nd Place", category: "COMPETITION", role: "UI/UX Designer", image: tagisan2,
+    challenge: "Multi-round design competition with high stakes. Requires both theory and practical UX application. Collaborate and perform under pressure.",
+    solution: "Prioritized accuracy and speed each round. Collaborated with teammates to cover all areas. Maintained consistency across every challenge.",
+    impact: "Secured 2nd Place overall. Reinforced consistent performance across competitions. Proven ability to compete at an academic level.",
+  },
+  {
+    title: "Collaboratech 2026 — Android Hackathon", category: "COMPETITION", role: "Product Designer & UI Strategist", image: collaboratechImg,
+    challenge: "Build a fully working Android application in just 6 hours. Solve a real-world problem based on a given niche. Deliver a complete, functional product under extreme time pressure.",
+    solution: "Used pen-and-paper rapid prototyping to map user flows and system structure — eliminating design bottlenecks before touching any tool. Aligned every design decision to the team's technical skill set, reducing back-end complexity and accelerating development. Acted as the bridge between design intent and engineering execution, ensuring zero miscommunication during the sprint.",
+    impact: "2nd Place — Collaboratech 2026 Android Hackathon. Built and shipped 'ShopLift' — an online high-discount store app — within the 6-hour window. Demonstrated that strategic design thinking and team alignment can outperform raw technical speed.",
+  },
+  {
+    title: "UXPH Community Seminar", category: "SEMINAR", role: "Attendee / UX Learner", image: uxphImg,
+    challenge: "Stay current with the evolving PH UX landscape. Connect with industry professionals and designers. Absorb real-world insights beyond the classroom.",
+    solution: "Attended talks, workshops, and networking sessions. Gained insights on design systems and research methods. Engaged with UXPH — a leading PH design community.",
+    impact: "Expanded professional network significantly. Deepened understanding of human-centered design. Gained real-world industry knowledge and perspective.",
+  },
+  {
+    title: "Exploring The Basics of Figma", category: "WORKSHOP", role: "Workshop Teacher / UI/UX Facilitator", image: exploringFigmaImg,
+    challenge: "Teach Figma to complete beginners from scratch. Cover components, frames, and basic prototyping. Keep the session engaging and hands-on.",
+    solution: "Led a live demo of Figma's core tools step-by-step. Walked students through building a real UI screen. Facilitated a group activity to apply the learning.",
+    impact: "Students built their first Figma prototype. Confidence and interest in UI/UX visibly increased. Sparked career curiosity in design among participants.",
+  },
+  {
+    title: "Beyond UI: Designing User Experiences", category: "WORKSHOP", role: "Workshop Teacher / UI/UX Facilitator", image: beyondUiImg,
+    challenge: "Shift students' mindset beyond visual design. Teach UX thinking, flows, and interaction design. Make abstract concepts tangible and applicable.",
+    solution: "Covered user research, wireframing, and prototyping. Used live Figma demos and guided exercises. Structured content around real-world UX principles.",
+    impact: "Students gained a solid UX foundation. Several expressed interest in pursuing design careers. Inspired a new generation of user-centered thinkers.",
+  },
 ];
 
-const TABS: Category[] = ["All", "Competition", "Workshop", "Seminar", "Case Studies"];
-const categoryConfig: Record<string, { bg: string; text: string; glow: string; dot: string; rgb: string }> = {
-  Competition: { bg: "bg-[#FF0000]", text: "text-white", glow: "rgba(255,0,0,0.4)", dot: "#FF0000", rgb: "255,0,0" },
-  Workshop:    { bg: "bg-blue-600",  text: "text-white", glow: "rgba(59,130,246,0.4)", dot: "#3B82F6", rgb: "59,130,246" },
-  Seminar:     { bg: "bg-purple-600",text: "text-white", glow: "rgba(147,51,234,0.4)", dot: "#9333EA", rgb: "147,51,234" },
-  "Case Studies": { bg: "bg-emerald-600", text: "text-white", glow: "rgba(16,185,129,0.4)", dot: "#10B981", rgb: "16,185,129" },
-};
+const FILTERS = ["ALL", "COMPETITION", "WORKSHOP", "SEMINAR", "CASE STUDIES"] as const;
+type Filter = typeof FILTERS[number];
 
-// Mobile scroll animation variants
-const mobileCardVariants: Variants = {
-  offscreen: {
-    y: 100,
-    opacity: 0,
-    scale: 0.9,
-  },
-  onscreen: {
-    y: 0,
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring",
-      bounce: 0.2,
-      duration: 0.5,
-    },
-  },
-};
+const STAT_CARDS = [
+  { code: "TOTAL", value: 8, label: "TOTAL_PROJECTS", big: true },
+  { code: "COMP",  value: 5, label: "COMPETITIONS" },
+  { code: "WKSP",  value: 2, label: "WORKSHOPS" },
+  { code: "SEM",   value: 1, label: "SEMINAR" },
+];
 
-const PortfolioCard = memo(function PortfolioCard({ item, index, onClick }: { item: typeof portfolioItems[0]; index: number; onClick: () => void }) {
-  const { isMobile, isSafari } = useAnimationConfig();
-  const reduceEffects = isMobile || isSafari;
-  const ref = useRef<HTMLDivElement>(null);
-  const mx = useMotionValue(0), my = useMotionValue(0);
-  const rx = useSpring(useTransform(my, [-60, 60], [4, -4]), { stiffness: 200, damping: 28 });
-  const ry = useSpring(useTransform(mx, [-60, 60], [-4, 4]), { stiffness: 200, damping: 28 });
-  const [hov, setHov] = useState(false);
-  const cfg = categoryConfig[item.category];
-
-  const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (reduceEffects) return;
-    const r = ref.current?.getBoundingClientRect(); if (!r) return;
-    mx.set(e.clientX - r.left - r.width / 2);
-    my.set(e.clientY - r.top - r.height / 2);
-  }, [mx, my]);
-
-  const onLeave = useCallback(() => { mx.set(0); my.set(0); setHov(false); }, [mx, my]);
-
-  // Mobile/Safari: Use scroll-triggered animation (no 3D tilt)
-  if (reduceEffects) {
-    return (
-      <motion.div
-        initial="offscreen"
-        whileInView="onscreen"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={mobileCardVariants}
-        onClick={onClick}
-        className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
-      >
-        {/* Image */}
-        <img src={item.image} alt={item.title}
-          loading="lazy" decoding="async" className="w-full h-full object-cover" />
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-
-        {/* Category badge */}
-        <div className={`absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-          <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
-          {item.category}
-        </div>
-
-        {/* Content - always visible on mobile */}
-        <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
-          <h4 className="text-white font-bold text-base leading-tight mb-1 line-clamp-2">{item.title}</h4>
-          <p className="text-white/55 text-xs mb-2">{item.role}</p>
-          <div className="flex items-center gap-2 text-white/40 text-xs">
-            <span className="w-4 h-px bg-white/30" />
-            Tap to view
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
-  // Desktop: Use 3D tilt animation
+// ── Stat card ─────────────────────────────────────────────────────────────
+const StatCard = memo(function StatCard({ s, i }: { s: typeof STAT_CARDS[0]; i: number }) {
+  const [ref, v] = useCountUp(s.value);
   return (
-    <motion.div ref={ref}
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-      style={reduceEffects ? {} : { rotateX: rx, rotateY: ry, transformStyle: "preserve-3d", willChange: hov ? "transform" : "auto" }}
-      onMouseMove={onMove}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={onLeave}
-      onClick={onClick}
-      className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: i * 0.08 }}
+      whileHover={{ y: -4, scale: 1.03 }}
+      className="group relative bg-[#030303] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,0,0,0.40)] p-5 transition-colors overflow-hidden"
     >
-      {/* Hover border glow */}
-      <motion.div animate={{ opacity: hov ? 1 : 0 }} transition={{ duration: 0.2 }}
-        className="absolute inset-0 rounded-2xl pointer-events-none z-20"
-        style={{ boxShadow: `inset 0 0 0 1.5px ${cfg.dot}, 0 0 25px ${cfg.glow}` }} />
-
-      {/* Shimmer sweep on hover */}
-      <motion.div initial={{ x: "-100%", opacity: 0 }} whileHover={{ x: "200%", opacity: 1 }}
-        transition={{ duration: 0.65, ease: "easeInOut" }}
-        className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/8 to-transparent skew-x-12 pointer-events-none z-10" />
-
-      {/* Image */}
-      <motion.img src={item.image} alt={item.title}
-        animate={{ scale: hov ? 1.06 : 1 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        loading="lazy" decoding="async" className="w-full h-full object-cover" />
-
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-
-      {/* Category badge */}
-      <div className={`absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-        <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
-        {item.category}
+      <HudCorners />
+      <span className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-[#FF0000] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="font-mono text-[10px] text-[#FF0000] tracking-widest">[{s.code}]</div>
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className={`font-black text-white mt-2 tabular-nums group-hover:text-[#FF0000] transition-colors ${s.big ? "text-5xl md:text-6xl" : "text-3xl md:text-4xl"}`}
+      >
+        {v}
       </div>
-
-      {/* Hover content */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: hov ? 1 : 0, y: hov ? 0 : 12 }}
-        transition={{ duration: 0.2 }}
-        className="absolute inset-0 flex flex-col justify-end p-5 z-10">
-        <h4 className="text-white font-bold text-base leading-tight mb-1 line-clamp-2">{item.title}</h4>
-        <p className="text-white/55 text-xs mb-2">{item.role}</p>
-        <div className="flex items-center gap-2 text-white/40 text-xs">
-          <span className="w-4 h-px bg-white/30" />
-          View case study
-        </div>
-      </motion.div>
+      <div className="font-mono text-[10px] text-[rgba(255,255,255,0.30)] tracking-widest mt-1">{s.label}</div>
     </motion.div>
   );
 });
+StatCard.displayName = "StatCard";
 
+// ── Project card (flip) ───────────────────────────────────────────────────
+const ProjectCard = memo(function ProjectCard({
+  p,
+  i,
+  onOpen,
+}: {
+  p: Project;
+  i: number;
+  onOpen: () => void;
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 40, rotateX: -10 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ delay: i * 0.06, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      onClick={onOpen}
+      className="group relative aspect-[4/5] preserve-3d cursor-pointer card-flip-wrapper"
+    >
+      <span className="hud-orbit pointer-events-none" aria-hidden />
+      <div className="card-flip-inner relative w-full h-full hud-card">
+
+        {/* FRONT */}
+        <div className="card-face bg-[#030303] border border-[rgba(255,255,255,0.08)] group-hover:border-[#FF0000] transition-colors overflow-hidden depth-shadow cut-corner">
+          <HudCorners />
+          <span className="status-badge-hover status-complete absolute top-2 left-1/2 -translate-x-1/2 z-20">
+            <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />
+            CASE_READY
+          </span>
+
+          <div className="relative w-full h-full overflow-hidden">
+            <img
+              src={p.image}
+              alt={p.title}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-[600ms] group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[rgba(3,3,3,0.40)] to-transparent" />
+
+            {/* Shimmer */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none overflow-hidden">
+              <div className="absolute -inset-y-2 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-12 group-hover:animate-shimmer" />
+            </div>
+
+            {/* Glow pulse */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none hud-glow-target" />
+
+            {/* Scanlines */}
+            <div className="absolute inset-0 scanlines opacity-20 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none" />
+
+            {/* Scan beam */}
+            <div className="absolute left-0 right-0 h-12 bg-gradient-to-b from-[rgba(255,0,0,0.40)] to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-scan pointer-events-none" />
+
+            {/* Category badge */}
+            <div className="absolute top-3 left-3 z-10">
+              <span className="font-mono text-[9px] tracking-widest px-2 py-1 bg-[#FF0000] text-white">
+                {p.category}
+              </span>
+            </div>
+
+            {/* Index */}
+            <div className="absolute top-3 right-3 z-10 font-mono text-[9px] text-white/80 bg-[rgba(3,3,3,0.80)] px-2 py-1 border border-[rgba(255,0,0,0.20)]">
+              #{String(i + 1).padStart(2, "0")}
+            </div>
+
+            {/* Title */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-1 z-10">
+              <h4 className="font-black text-lg tracking-tight group-hover:text-[#FF0000] transition-colors duration-300">
+                {p.title}
+              </h4>
+              <p className="font-mono text-[10px] text-[rgba(255,255,255,0.55)] tracking-wider">{p.role}</p>
+            </div>
+
+            <div className="absolute bottom-3 right-3 z-10 font-mono text-[9px] text-[#FF0000] tracking-widest opacity-60 animate-pulse">
+              <span className="hidden sm:inline">[ HOVER_TO_FLIP ]</span>
+              <span className="sm:hidden">[ TAP_TO_VIEW ]</span>
+            </div>
+          </div>
+        </div>
+
+        {/* BACK */}
+        <div className="card-face card-back bg-gradient-to-br from-[#030303] to-[#050505] border border-[#FF0000] overflow-hidden depth-shadow cut-corner">
+          <HudCorners />
+          <div className="absolute inset-0 scanlines opacity-20 pointer-events-none" />
+          <div className="absolute inset-0 holo opacity-50 pointer-events-none" />
+
+          <div className="relative w-full h-full p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-mono text-[9px] tracking-widest px-2 py-1 bg-[#FF0000] text-white">
+                  {p.category}
+                </span>
+                <span className="font-mono text-[9px] text-[#FF0000]">
+                  // CASE_{String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <h4 className="font-black text-lg tracking-tight mb-3">{p.title}</h4>
+              <div className="border-l-2 border-[#FF0000] pl-3 space-y-2">
+                <div>
+                  <div className="font-mono text-[9px] text-[#FF0000] tracking-widest">// CHALLENGE</div>
+                  <p className="text-[11px] text-[rgba(255,255,255,0.70)] leading-snug line-clamp-3">{p.challenge}</p>
+                </div>
+                <div>
+                  <div className="font-mono text-[9px] text-[#FF0000] tracking-widest">// IMPACT</div>
+                  <p className="text-[11px] text-[rgba(255,255,255,0.70)] leading-snug line-clamp-2">{p.impact}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t border-[rgba(255,255,255,0.08)]">
+              <span className="font-mono text-[10px] text-[rgba(255,255,255,0.30)] tracking-widest">{p.role}</span>
+              <span className="font-mono text-[10px] text-[#FF0000] tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                OPEN_CASE →
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+ProjectCard.displayName = "ProjectCard";
+
+// ── Portfolio ─────────────────────────────────────────────────────────────
 export function Portfolio() {
-  const { isMobile, isSafari } = useAnimationConfig();
-  const reduceEffects = isMobile || isSafari;
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<Category>("All");
-  const [showAll, setShowAll] = useState(false);
+  const [filter, setFilter] = useState<Filter>("ALL");
+  const [selected, setSelected] = useState<Project | null>(null);
+  const { sectionRef, glowRef } = useSectionGlow<HTMLElement>();
 
-  // Close modal on Escape key + lock body scroll on mobile
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  useEffect(() => {
-    if (selectedId) {
-      document.body.style.overflow = 'hidden';
-      window.dispatchEvent(new Event('portfolio-modal-open'));
-    } else {
-      document.body.style.overflow = '';
-      window.dispatchEvent(new Event('portfolio-modal-close'));
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [selectedId]);
-  const selectedItem = portfolioItems.find(i => i.id === selectedId);
-  const filtered = activeTab === "All" ? portfolioItems : portfolioItems.filter(i => i.category === activeTab);
-  const displayedItems = showAll ? filtered : filtered.slice(0, 9);
-  const hasMore = filtered.length > 9;
-  const counts = TABS.reduce((a, t) => ({ ...a, [t]: t === "All" ? portfolioItems.length : portfolioItems.filter(i => i.category === t).length }), {} as Record<string, number>);
-
-  const handleTabClick = (tab: Category) => {
-    setActiveTab(tab);
-    setShowAll(false);
-    // Scroll to top of portfolio grid
-    setTimeout(() => {
-      document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+  const handleFilter = (f: Filter) => {
+    setFilter(f);
   };
+
+  const counts: Record<string, number> = {
+    ALL: PROJECTS.length,
+    COMPETITION: PROJECTS.filter((p) => p.category === "COMPETITION").length,
+    WORKSHOP:    PROJECTS.filter((p) => p.category === "WORKSHOP").length,
+    SEMINAR:     PROJECTS.filter((p) => p.category === "SEMINAR").length,
+    "CASE STUDIES": 0,
+  };
+
+  const items =
+    filter === "ALL"
+      ? PROJECTS
+      : filter === "CASE STUDIES"
+      ? []
+      : PROJECTS.filter((p) => p.category === filter);
+
+  // Body scroll lock
+  useEffect(() => {
+    document.body.style.overflow = selected ? "hidden" : "";
+    if (selected) window.dispatchEvent(new Event("portfolio-modal-open"));
+    else window.dispatchEvent(new Event("portfolio-modal-close"));
+    return () => { document.body.style.overflow = ""; };
+  }, [selected]);
+
+  // Escape key
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <>
-    <section id="portfolio" className="pt-20 pb-24 bg-[#080808] relative overflow-hidden">
-      {/* Static grid */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
-        style={{ backgroundImage: "linear-gradient(rgba(255,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
+      <section ref={sectionRef} id="portfolio" className="relative py-32 bg-[#080808] overflow-hidden min-h-screen">
+        <div ref={glowRef} className="section-glow" aria-hidden />
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="absolute inset-0 holo opacity-30 pointer-events-none" />
 
-      {/* Animated orbs — desktop non-Safari only, box-shadow */}
-      {!reduceEffects && (
-        <>
-          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 9, repeat: Infinity }}
-            className="absolute -top-40 -left-40 w-[300px] h-[300px] rounded-full pointer-events-none"
-            style={{ boxShadow: "0 0 200px 100px rgba(255,0,0,0.05)", background: "transparent" }} />
-          <motion.div animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 7, repeat: Infinity, delay: 2 }}
-            className="absolute -bottom-40 -right-40 w-[250px] h-[250px] rounded-full pointer-events-none"
-            style={{ boxShadow: "0 0 180px 90px rgba(255,0,0,0.04)", background: "transparent" }} />
-        </>
-      )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative space-y-12">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-10 space-y-4">
-          <motion.div initial={{ opacity: 0, y: -10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/60 border border-[#FF0000]/20 rounded font-mono">
-            <motion.span animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1, repeat: Infinity }}
-              className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
-            <span className="text-[#FF0000] text-[10px] font-bold uppercase tracking-[0.2em]">PORTFOLIO.EXE</span>
-            <span className="text-white/20 text-[10px] font-mono">// MY_WORK</span>
-          </motion.div>
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-            Portfolio <span className="text-[#FF0000]">Gallery</span>
-          </motion.h2>
-          <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }} style={{ originX: 0.5 }}
-            className="w-10 h-[2px] bg-gradient-to-r from-transparent via-[#FF0000] to-transparent mx-auto rounded-full" />
-        </div>
-
-        {/* Stats - HUD Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-10 max-w-5xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} 
-            transition={{ delay: 0, type: "spring", stiffness: 200 }}
-            className="flex flex-col justify-center items-center p-8 bg-black/40 border border-[#FF0000]/20 rounded relative overflow-hidden group hover:border-[#FF0000]/40 transition-all duration-500"
-          >
-            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FF0000]/50" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FF0000]/50" />
-            <span className="text-[9px] font-mono text-[#FF0000]/40 uppercase tracking-widest mb-1">[TOTAL]</span>
-            <span className="text-6xl sm:text-7xl font-black bg-gradient-to-br from-[#FF0000] to-[#FF4444] bg-clip-text text-transparent font-mono relative z-10">8</span>
-            <span className="text-white/40 text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] mt-2">TOTAL_PROJECTS</span>
-            <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}
-              className="absolute top-4 right-4 w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} 
-            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
-          >
-            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
-            <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[COMP]</span>
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">5</span>
-            <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">COMPETITIONS</span>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} 
-            transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
-            className="flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
-          >
-            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
-            <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[WKSP]</span>
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">2</span>
-            <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">WORKSHOPS</span>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} 
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="sm:col-span-3 flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
-          >
-            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
-            <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[SEM]</span>
-            <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">1</span>
-            <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">SEMINAR</span>
-          </motion.div>
-
-          {counts['Case Studies'] > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }} 
-              transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
-              className="sm:col-span-2 flex flex-col justify-center items-center p-6 sm:p-8 bg-black/30 border border-white/[0.06] rounded relative overflow-hidden hover:border-[#FF0000]/20 transition-all duration-300"
+          {/* Header */}
+          <div className="grid md:grid-cols-12 gap-8 items-end">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="md:col-span-8 space-y-4"
             >
-              <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-[#FF0000]/30" />
-              <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#FF0000]/30" />
-              <span className="text-[9px] font-mono text-[#FF0000]/30 uppercase tracking-widest mb-1">[CASE]</span>
-              <span className="text-5xl sm:text-6xl font-black text-[#FF0000] font-mono">{counts['Case Studies']}</span>
-              <span className="text-white/30 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] mt-2">CASE_STUDIES</span>
+              <SectionBadge name="PORTFOLIO.EXE" comment="MY_WORK" />
+              <h2
+                className="font-black tracking-tighter leading-[0.85]"
+                style={{ fontSize: "clamp(3rem, 10vw, 8rem)" }}
+              >
+                <span className="text-gradient-white">PORTFOLIO</span>
+                <span className="block text-stroke">GALLERY</span>
+              </h2>
+              <div className="max-w-xs">
+                <RedDivider />
+              </div>
             </motion.div>
-          )}
-        </div>
 
-        {/* Filter Tabs */}
-        <motion.div 
-          initial={{ opacity: 0, y: 12 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true }}
-          className="relative mb-8"
-        >
-          {/* Scroll fade indicators */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#080808] to-transparent pointer-events-none z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#080808] to-transparent pointer-events-none z-10" />
-          
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide scroll-smooth">
-            <div className="flex items-center gap-1.5 text-white/25 text-xs mr-1 flex-shrink-0 font-mono">
-              <Filter size={11} /> FILTER_BY:
-            </div>
-            {TABS.map(tab => {
-              const active = activeTab === tab;
-              const cfg = tab !== "All" ? categoryConfig[tab] : null;
-              return (
-                <motion.button key={tab} onClick={() => handleTabClick(tab)}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex-shrink-0 px-4 py-1.5 rounded text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 border ${active ? `${cfg?.bg ?? "bg-white"} ${cfg?.text ?? "text-black"} border-transparent shadow-lg` : "bg-black/40 text-white/40 border-white/10 hover:text-white/70 hover:border-[#FF0000]/20"}`}>
-                  {tab}
-                  <span className={`ml-1.5 text-[10px] ${active ? "opacity-60" : "opacity-35"}`}>{counts[tab]}</span>
-                </motion.button>
-              );
-            })}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="md:col-span-4 space-y-2"
+            >
+              <div className="font-mono text-[10px] text-[#FF0000] tracking-widest">▸ ARCHIVE_INDEX</div>
+              <p className="text-sm text-[rgba(255,255,255,0.55)] leading-relaxed">
+                Selected work across competitions, workshops, and seminars. Click any card to flip and inspect.
+              </p>
+            </motion.div>
           </div>
-          
-          {isMobile && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="flex items-center justify-center gap-1 mt-2 text-white/20 text-[10px]"
-            >
-              <span className="text-[#FF0000]/50">←</span>
-              <span className="font-mono text-[10px] uppercase tracking-widest">SWIPE_TO_FILTER</span>
-              <span className="text-[#FF0000]/50">→</span>
-            </motion.div>
+
+          {/* Stat cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {STAT_CARDS.map((s, i) => (
+              <StatCard key={s.code} s={s} i={i} />
+            ))}
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="font-mono text-[10px] text-[rgba(255,255,255,0.55)] tracking-widest">FILTER_BY:</span>
+            <div className="flex gap-2 flex-wrap">
+              {FILTERS.filter((f) => f !== "CASE STUDIES" || counts["CASE STUDIES"] > 0).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => handleFilter(f)}
+                  className={`relative font-mono text-[10px] tracking-widest px-4 py-2.5 border transition-all overflow-hidden group cut-corner ${
+                    filter === f
+                      ? "bg-[#FF0000] text-white border-[#FF0000] red-glow"
+                      : "bg-[#030303] border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.55)] hover:border-[#FF0000] hover:text-white hover:scale-105"
+                  }`}
+                >
+                  <span className="absolute inset-0 bg-[rgba(255,0,0,0.20)] -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                  <span className="relative">
+                    {f} ({counts[f]})
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid */}
+          <div className="perspective-1500 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start content-start">
+            <AnimatePresence mode="popLayout">
+              {items.map((p, i) => (
+                <ProjectCard key={p.title} p={p} i={i} onOpen={() => setSelected(p)} />
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {items.length === 0 && (
+            <div className="text-center py-16 font-mono text-[rgba(255,255,255,0.55)]">
+              // No projects in this category yet.
+            </div>
           )}
-        </motion.div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          style={reduceEffects ? {} : { perspective: "1000px" }}>
-          {displayedItems.map((item, i) => (
-            <PortfolioCard key={`${activeTab}-${item.id}`} item={item} index={i} onClick={() => setSelectedId(item.id)} />
-          ))}
         </div>
+      </section>
 
-        {/* Empty state */}
-        {filtered.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-20 gap-3 text-center"
-          >
-            <span className="text-4xl">🎨</span>
-            <p className="text-white/40 text-sm font-medium">No projects in this category yet.</p>
-            <p className="text-white/20 text-xs">Check back soon — more work is on the way.</p>
-          </motion.div>
-        )}
-
-        {/* See More Button */}
-        {hasMore && !showAll && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="flex justify-center mt-10"
-          >
-            <motion.button
-              onClick={() => setShowAll(true)}
-              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,0,0,0.4)" }}
-              whileTap={{ scale: 0.97 }}
-              className="group relative px-8 py-3.5 bg-white/[0.04] border border-white/[0.12] text-white font-semibold rounded-full hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 transition-all duration-300 flex items-center gap-2 overflow-hidden"
-            >
-              <motion.span
-                animate={{ x: ["-100%", "200%"] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-              />
-              <span className="relative z-10">See More Projects</span>
-              <motion.span
-                animate={{ y: [0, 3, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="relative z-10"
-              >
-                ↓
-              </motion.span>
-            </motion.button>
-          </motion.div>
-        )}
-
-        {/* Show Less Button */}
-        {showAll && hasMore && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center mt-10"
-          >
-            <motion.button
-              onClick={() => {
-                setShowAll(false);
-                // Scroll to portfolio section
-                document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-              className="px-8 py-3.5 bg-white/[0.04] border border-white/[0.12] text-white/70 font-semibold rounded-full hover:border-white/[0.25] hover:text-white transition-all duration-300 flex items-center gap-2"
-            >
-              <span>Show Less</span>
-              <motion.span
-                animate={{ y: [0, -3, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                ↑
-              </motion.span>
-            </motion.button>
-          </motion.div>
-        )}
-      </div>
-
-    </section>
-
-    {/* Modal — rendered via portal OUTSIDE section to avoid overflow-hidden clipping */}
-    {createPortal(
-      <AnimatePresence>
-        {selectedId && selectedItem && (() => {
-          const cfg = categoryConfig[selectedItem.category];
-          return (
+      {/* Modal via portal */}
+      {createPortal(
+        <AnimatePresence>
+          {selected && (
             <motion.div
-              key="modal-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                zIndex: 9999,
-                backgroundColor: 'rgba(0,0,0,0.92)',
-                overflowY: 'auto',
-                WebkitOverflowScrolling: 'touch' as never,
-              }}
+              onClick={() => setSelected(null)}
+              className="fixed inset-0 z-[80] flex items-center justify-center p-4 overflow-y-auto"
+              style={{ background: "rgba(0,0,0,0.92)" }}
               role="dialog"
               aria-modal="true"
             >
               <motion.div
-                key="modal-card"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ type: "spring", damping: 28, stiffness: 280 }}
-                onClick={e => e.stopPropagation()}
-                style={{
-                  position: 'relative',
-                  margin: '20px auto',
-                  width: 'calc(100% - 32px)',
-                  maxWidth: '900px',
-                  backgroundColor: '#0c0c0c',
-                  borderRadius: '24px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  overflow: 'hidden',
-                  boxShadow: `0 0 60px ${cfg.glow}`,
-                }}
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 60, opacity: 0 }}
+                transition={{ type: "spring", damping: 25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-3xl bg-[#030303] border border-[rgba(255,0,0,0.20)] my-10"
               >
+                <HudCorners />
                 <button
-                  onClick={() => setSelectedId(null)}
+                  onClick={() => setSelected(null)}
+                  className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center bg-[#080808] border border-[rgba(255,255,255,0.08)] hover:border-[#FF0000] hover:text-[#FF0000] transition-all"
                   aria-label="Close"
-                  style={{
-                    position: 'absolute', top: '16px', right: '16px', zIndex: 20,
-                    padding: '8px', backgroundColor: 'rgba(255,255,255,0.08)',
-                    border: 'none', borderRadius: '50%', color: 'white',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
                 >
-                  <X size={16} />
+                  <X size={18} />
                 </button>
-                <div style={{ width: '100%', height: '220px', position: 'relative', overflow: 'hidden' }}>
-                  <img src={selectedItem.image} alt={selectedItem.title} loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0c0c0c, transparent)' }} />
-                  <div className={`absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/60" />{selectedItem.category}
+
+                <div className="aspect-[16/9] overflow-hidden relative">
+                  <img
+                    src={selected.image}
+                    alt={selected.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#030303] to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <span className="font-mono text-[10px] tracking-widest px-2 py-1 bg-[#FF0000] text-white">
+                      {selected.category}
+                    </span>
                   </div>
                 </div>
-                <div style={{ padding: '24px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: 'white', marginBottom: '8px', lineHeight: 1.3 }}>{selectedItem.title}</h3>
-                  <div className="flex items-center gap-2 mb-5">
-                    <Layers size={13} className="text-white/30" />
-                    <span className="text-white/35 text-sm">{selectedItem.role}</span>
+
+                <div className="p-6 md:p-8 space-y-5">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-black tracking-tight">{selected.title}</h3>
+                    <p className="font-mono text-xs text-[rgba(255,255,255,0.55)] tracking-wider mt-1">
+                      // {selected.role}
+                    </p>
                   </div>
-                  <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)', marginBottom: '20px' }} />
+
                   {[
-                    { icon: ExternalLink, label: "Challenge", text: selectedItem.challenge },
-                    { icon: Code, label: "Solution", text: selectedItem.solution },
-                    { icon: Trophy, label: "Impact", text: selectedItem.impact, highlight: true },
-                  ].map(({ icon: Icon, label, text, highlight }) => (
-                    <div key={label} style={{ marginBottom: '20px' }}>
-                      <h4 className="text-white font-semibold flex items-center gap-2 mb-3 text-sm">
-                        <span className="p-1.5 rounded-lg" style={{ backgroundColor: `${cfg.dot}20` }}>
-                          <Icon size={13} style={{ color: cfg.dot }} />
-                        </span>
-                        {label}
-                      </h4>
-                      <div className="text-sm leading-relaxed space-y-1.5"
-                        style={highlight
-                          ? { backgroundColor: `${cfg.dot}10`, color: `${cfg.dot}CC`, padding: '16px', borderRadius: '12px', border: `1px solid ${cfg.dot}25` }
-                          : { color: 'rgba(255,255,255,0.5)' }}>
-                        {text.split('\n').map((line, li) => <p key={li}>{line}</p>)}
+                    { label: "CHALLENGE", text: selected.challenge },
+                    { label: "SOLUTION",  text: selected.solution },
+                    { label: "IMPACT",    text: selected.impact },
+                  ].map((s) => (
+                    <div key={s.label} className="border-l-2 border-[#FF0000] pl-4">
+                      <div className="font-mono text-[10px] text-[#FF0000] tracking-widest mb-1">
+                        // {s.label}
                       </div>
+                      <p className="text-sm text-[rgba(255,255,255,0.80)] leading-relaxed">{s.text}</p>
                     </div>
                   ))}
                 </div>
               </motion.div>
             </motion.div>
-          );
-        })()}
-      </AnimatePresence>,
-      document.body
-    )}
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }
