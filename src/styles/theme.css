@@ -1,0 +1,113 @@
+/* ── Global Performance & Smoothness ── */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Promote animated elements to their own compositor layer */
+.motion-layer {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Sections: contain layout to prevent reflow cascade */
+section {
+  contain: layout style;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-none,
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Prevent CLS on images */
+img { content-visibility: auto; }
+
+/* Canvas: crisp rendering */
+canvas { image-rendering: pixelated; }
+
+/* ── Safari / WebKit: aggressive compositing protection ── */
+/* Safari creates a new compositing layer for every backdrop-filter,
+   blur filter, and will-change — this kills performance on macOS/iOS */
+@supports (-webkit-appearance: none) {
+  /* Disable backdrop-blur on Safari — single biggest perf win */
+  *[class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Cap large blur radii that create expensive layers */
+  .safari-no-blur {
+    filter: none !important;
+  }
+}
+
+/* ── Mobile: aggressive GPU memory protection ── */
+@media (max-width: 767px) {
+  * {
+    will-change: auto !important;
+    backface-visibility: visible !important;
+  }
+
+  *[class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  *[class*="blur-["] {
+    filter: none !important;
+  }
+
+  .motion-layer {
+    will-change: auto !important;
+    transform: none !important;
+  }
+}
+
+/* ── Reduced motion accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Smooth transitions for interactive elements ── */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ── Glow orb optimization: use box-shadow instead of filter:blur on Safari ── */
+.glow-orb-safari {
+  box-shadow: 0 0 80px 40px rgba(255, 0, 0, 0.08);
+  background: transparent !important;
+  filter: none !important;
+}
+
+/* ── iOS Safe Area Support ── */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Focus visible — keyboard navigation ── */
+:focus-visible {
+  outline: 2px solid #FF0000;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Prevent text size adjustment on iOS rotation ── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
