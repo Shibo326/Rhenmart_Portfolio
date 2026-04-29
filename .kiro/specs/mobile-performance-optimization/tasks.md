@@ -1,0 +1,133 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - Mobile Animation Budget Exceeded
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists
+  - **Scoped PBT Approach**: For deterministic bugs, scope the property to the concrete failing case(s) to ensure reproducibility
+  - Test that `computeAnimationConfig` returns `enableInfiniteLoops: true` for Android mid-tier mobile inputs (6+ cores, isMobile: true)
+  - Test that `computeAnimationConfig` returns `enableShimmer: true` for Android mid-tier mobile inputs
+  - Test that `<Hero />` renders 20 `animate-particle` DOM nodes when `isMobile: true`
+  - Test that `useScrollProgress` returns a spring-backed MotionValue on mobile (not a static value)
+  - The test assertions should match the Expected Behavior Properties from design:
+    - `config.enableInfiniteLoops === false` for mobile
+    - `config.enableShimmer === false` for mobile
+    - `config.isMobileAnimationBudgetExceeded === true` for mobile
+    - Zero `animate-particle` elements in Hero DOM on mobile
+    - Static MotionValue (not spring) from `useScrollProgress` on mobile
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found to understand root cause:
+    - Android mid-tier (6 cores, isMobile: true) returns `enableInfiniteLoops: true` instead of `false`
+    - Android mid-tier returns `enableShimmer: true` instead of `false`
+    - Hero renders 20 particle nodes on mobile instead of 0
+    - `useScrollProgress` returns spring on mobile instead of static value
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.3, 1.4, 1.5, 1.6_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Desktop and Non-Mobile Behavior Unchanged
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-buggy inputs (desktop, non-mobile contexts)
+  - Write property-based tests capturing observed behavior patterns from Preservation Requirements
+  - Property-based testing generates many test cases for stronger guarantees
+  - Test cases to observe and encode:
+    - Desktop Chrome/Edge/Firefox (isMobile: false, cores >= 4): `enableInfiniteLoops: true`, `enableShimmer: true`, `enable3DScene: true`
+    - macOS Safari (isSafari: true, isIOS: false, isMobile: false, cores >= 4): `enableInfiniteLoops: true`, `enableBackdropBlur: false`
+    - Android tablet high-tier (isAndroid: true, isTablet: true, cores >= 6): `tier: 'high'`, all high-tier flags enabled
+    - `prefers-reduced-motion: true`: `tier: 'low'`, all animation flags disabled
+    - Desktop: Hero renders 20 particle nodes
+    - Desktop: `useScrollProgress` returns spring-backed MotionValue
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
+
+- [-] 3. Fix for mobile performance optimization
+
+  - [x] 3.1 Update AnimationContext to cap mobile animations
+    - Add `isMobileAnimationBudgetExceeded` flag to `AnimationConfig` interface
+    - Set `isMobileAnimationBudgetExceeded: isMobile || isIOS` in `computeAnimationConfig`
+    - Change `enableInfiniteLoops` from `tier !== 'low'` to `tier !== 'low' && !isMobile`
+    - Change `enableShimmer` from `tier !== 'low' && !isIOS` to `tier !== 'low' && !isIOS && !isMobile`
+    - Update `defaultConfig` to include `isMobileAnimationBudgetExceeded: false`
+    - _Bug_Condition: isBugCondition(input) where (input.isMobile = true OR input.isIOS = true) AND (infiniteAnimationCount > 1 OR concurrentEntranceAnimations > 3 OR backdropFilterActive = true OR particleDOMNodesCreated = true OR scrollSpringActive = true)_
+    - _Expected_Behavior: For all mobile inputs, config.enableInfiniteLoops = false AND config.enableShimmer = false AND config.isMobileAnimationBudgetExceeded = true_
+    - _Preservation: Desktop configs (isMobile = false, isTablet = false, isIOS = false) must return identical values before and after fix_
+    - _Requirements: 1.4, 2.4, 3.1, 3.2, 3.7_
+
+  - [x] 3.2 Gate Particles component in Hero.tsx
+    - Replace unconditional `<Particles count={20} />` with `{!isMobile && <Particles count={20} />}`
+    - Import `isMobile` from `useAnimationConfig()`
+    - This eliminates 20 DOM nodes and their animation computation entirely on mobile
+    - _Bug_Condition: particleDOMNodesCreated = true on mobile_
+    - _Expected_Behavior: particleDOMNodesCreated = false on mobile (zero nodes created)_
+    - _Preservation: Desktop must continue to render 20 particle nodes_
+    - _Requirements: 1.5, 2.5, 3.1_
+
+  - [x] 3.3 Gate infinite animation classes in Hero.tsx
+    - Gate `animate-blink` on scroll indicator behind `enableInfiniteLoops` flag
+    - Gate `animate-ping` on status badge behind `enableInfiniteLoops` flag
+    - Use conditional className: `${enableInfiniteLoops ? 'animate-blink' : ''}`
+    - _Bug_Condition: Hardcoded animation classes bypass AnimationContext flags on mobile_
+    - _Expected_Behavior: No infinite animations run on mobile when enableInfiniteLoops = false_
+    - _Preservation: Desktop must continue to show all infinite animations_
+    - _Requirements: 1.1, 2.1, 3.1_
+
+  - [x] 3.4 Disable scroll spring on mobile in useDeviceAnimations.ts
+    - Update `useScrollProgress` to check `isMobile` before creating spring
+    - On mobile, return a static `MotionValue` with value `0` using `useMotionValue(0)`
+    - On desktop, return the spring-backed `scaleX` as before
+    - _Bug_Condition: scrollSpringActive = true on mobile (spring runs on every scroll frame)_
+    - _Expected_Behavior: scrollSpringActive = false on mobile (static value, no spring computation)_
+    - _Preservation: Desktop must continue to show animated scroll progress bar with spring_
+    - _Requirements: 1.6, 2.6, 3.1_
+
+  - [x] 3.5 Add mobile CSS animation suppression in index.css
+    - Verify existing `@media (max-width: 767px)` block suppresses all infinite animations
+    - Add `animate-particle`, `animate-scan`, `animate-beam`, `animate-border-pulse`, `animate-pulse-red`, `animate-blink`, `animate-ping`, `animate-ripple`, `animate-divider` to the suppression list if not already present
+    - Set `animation: none !important` for all listed classes on mobile
+    - This acts as a CSS-level safety net even if component-level gating is missed
+    - _Bug_Condition: CSS animations run on mobile even when components attempt to gate them_
+    - _Expected_Behavior: All infinite CSS animations are suppressed on mobile via CSS media query_
+    - _Preservation: Desktop CSS animations must remain unchanged_
+    - _Requirements: 1.1, 1.3, 2.1, 2.3, 3.1_
+
+  - [ ] 3.6 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Mobile Animation Budget Satisfied
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify all assertions pass:
+      - `computeAnimationConfig` returns `enableInfiniteLoops: false` for Android mid-tier mobile
+      - `computeAnimationConfig` returns `enableShimmer: false` for Android mid-tier mobile
+      - `computeAnimationConfig` returns `isMobileAnimationBudgetExceeded: true` for all mobile inputs
+      - `<Hero />` renders zero `animate-particle` elements when `isMobile: true`
+      - `useScrollProgress` returns static MotionValue on mobile
+    - _Requirements: Expected Behavior Properties from design (2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7)_
+
+  - [ ] 3.7 Verify preservation tests still pass
+    - **Property 2: Preservation** - Desktop and Non-Mobile Behavior Unchanged
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all desktop and non-mobile configurations produce identical results before and after fix:
+      - Desktop Chrome/Edge/Firefox: all high-tier flags enabled
+      - macOS Safari: mid-tier flags enabled, no backdrop-blur
+      - Android tablet high-tier: all high-tier flags enabled
+      - `prefers-reduced-motion`: low-tier flags (all disabled)
+      - Desktop Hero: 20 particle nodes rendered
+      - Desktop scroll progress: spring-backed MotionValue
+    - Confirm all tests still pass after fix (no regressions)
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Run full test suite: `npm test` or `vitest run`
+  - Verify bug condition exploration test (task 1) now passes
+  - Verify preservation tests (task 2) still pass
+  - Verify no new test failures introduced
+  - If any tests fail, investigate and fix before proceeding
+  - Ask the user if questions arise about test failures or unexpected behavior
